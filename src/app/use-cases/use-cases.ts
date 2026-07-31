@@ -1,4 +1,5 @@
 import { Component, computed, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Reveal } from '../reveal';
 
 export type UseCaseKey = 'insurance' | 'money' | 'home' | 'health' | 'family';
@@ -70,7 +71,7 @@ const USE_CASES: UseCase[] = [
 
 @Component({
   selector: 'app-use-cases',
-  imports: [Reveal],
+  imports: [Reveal, RouterLink],
   templateUrl: './use-cases.html',
 })
 export class UseCases {
