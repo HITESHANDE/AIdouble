@@ -116,6 +116,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:32px;
   padding-top:24px;border-top:1px solid var(--line);flex-wrap:wrap}
 .actions .note{font-size:12.5px;color:var(--ink-3);max-width:44ch}
+.submit-error{display:block;margin-top:6px;color:var(--err);font-weight:600}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;border-radius:100px;
   font-weight:600;font-size:15px;border:1.5px solid transparent;transition:transform .2s,background .2s,box-shadow .2s}
 .btn.primary{background:var(--accent);color:#fff}

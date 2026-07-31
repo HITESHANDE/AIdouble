@@ -163,7 +163,11 @@
           </div>
 
           <div class="actions">
-            <p class="note">By continuing you agree to our Terms and Privacy Policy. Required fields are marked <span style="color:var(--err)">*</span>.</p>
+            <p class="note">By continuing you agree to our Terms and Privacy Policy. Required fields are marked <span style="color:var(--err)">*</span>.
+              @if (submitError()) {
+                <span class="submit-error">{{ submitError() }}</span>
+              }
+            </p>
             <button type="submit" class="btn primary" [disabled]="submitting()">
               @if (submitting()) {
                 Creating…
