@@ -1,0 +1,19 @@
+import { Component } from '@angular/core';
+import { Nav } from './nav/nav';
+import { Hero } from './hero/hero';
+import { OnePlace } from './one-place/one-place';
+import { Why } from './why/why';
+import { Trust } from './trust/trust';
+import { UseCases } from './use-cases/use-cases';
+import { How } from './how/how';
+import { Pricing } from './pricing/pricing';
+import { Faq } from './faq/faq';
+import { Download } from './download/download';
+import { Footer } from './footer/footer';
+
+@Component({
+  selector: 'app-root',
+  imports: [Nav, Hero, OnePlace, Why, Trust, UseCases, How, Pricing, Faq, Download, Footer],
+  templateUrl: './app.html',
+})
+export class App {}
