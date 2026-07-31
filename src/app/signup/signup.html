@@ -1,0 +1,186 @@
+<header class="bar">
+  <div class="wrap bar-in">
+    <a routerLink="/" class="logo"><span class="dot" aria-hidden="true"></span>AI <em>Double</em></a>
+    <a routerLink="/" class="back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Back to site</a>
+  </div>
+</header>
+
+<main class="page">
+  <div class="wrap">
+    <div class="head">
+      <h1>Create your <em>Double</em></h1>
+      <p class="sub" style="margin-left:auto;margin-right:auto">First, tell us who's signing up. Pick the option that fits, and we'll ask only for what that account needs.</p>
+    </div>
+
+    <div class="types" role="tablist" aria-label="Account type">
+      <button class="type" [class.on]="current() === 'individual'" role="tab" [attr.aria-selected]="current() === 'individual'" (click)="select('individual')">
+        <span class="rd" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span class="ti"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+        <h3>Individual</h3>
+        <p>A personal Double for your own admin — insurance, bills, health and more.</p>
+      </button>
+      <button class="type" [class.on]="current() === 'business'" role="tab" [attr.aria-selected]="current() === 'business'" (click)="select('business')">
+        <span class="rd" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span class="ti"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg></span>
+        <h3>Business</h3>
+        <p>List your business so customers reach a Double that speaks for you.</p>
+      </button>
+      <button class="type" [class.on]="current() === 'broker'" role="tab" [attr.aria-selected]="current() === 'broker'" (click)="select('broker')">
+        <span class="rd" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span class="ti"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v6c0 4.4-3.4 7.4-8 8-4.6-.6-8-3.6-8-8V7z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <h3>Broker</h3>
+        <p>Join as a licensed broker and get matched to people who need you.</p>
+      </button>
+    </div>
+
+    <div class="formcard">
+      @if (!done()) {
+        <form id="form" novalidate (submit)="submit($event)">
+
+          <div class="pane" [class.on]="current() === 'individual'" [formGroup]="individual">
+            <div class="fhead">
+              <span class="fi" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+              <div><h2>Add yourself to AI Double</h2><span>The details your Double uses to represent you.</span></div>
+            </div>
+            <div class="grid">
+              <div class="field full" [class.bad]="bad(individual, 'name')"><label>Name <span class="req">*</span></label><input formControlName="name" type="text" placeholder="Ananya Rao" autocomplete="name"><span class="err-msg">Please enter your name.</span></div>
+              <div class="field" [class.bad]="bad(individual, 'email')"><label>Email <span class="req">*</span></label><input formControlName="email" type="email" placeholder="you@email.com" autocomplete="email"><span class="err-msg">Enter a valid email.</span></div>
+              <div class="field" [class.bad]="bad(individual, 'mobile')"><label>Mobile No <span class="req">*</span></label>
+                <div class="phone-row">
+                  <select formControlName="dialcode" aria-label="Dial code"><option>+91</option><option>+1</option><option>+44</option><option>+61</option><option>+971</option></select>
+                  <input formControlName="mobile" type="tel" inputmode="numeric" placeholder="98765 43210">
+                </div><span class="err-msg">Enter a valid mobile number.</span>
+              </div>
+              <div class="field full"><label>Address <span class="opt">optional</span></label><input formControlName="address" type="text" placeholder="Flat, street, area" autocomplete="street-address"></div>
+              <div class="field"><label>City <span class="opt">optional</span></label><input formControlName="city" type="text" placeholder="Hyderabad" autocomplete="address-level2"></div>
+              <div class="field"><label>Country <span class="opt">optional</span></label>
+                <select formControlName="country"><option value="">Select country</option><option>India</option><option>United States</option><option>United Kingdom</option><option>United Arab Emirates</option><option>Australia</option><option>Other</option></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="pane" [class.on]="current() === 'business'" [formGroup]="business">
+            <div class="fhead">
+              <span class="fi" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg></span>
+              <div><h2>Add a business to AI Double</h2><span>Tell us about the business and who runs it.</span></div>
+            </div>
+
+            <div class="section-label">Primary contact</div>
+            <div class="grid">
+              <div class="field"><label>First Name</label><input formControlName="b_first" type="text" placeholder="First name" autocomplete="given-name"></div>
+              <div class="field"><label>Last Name</label><input formControlName="b_last" type="text" placeholder="Last name" autocomplete="family-name"></div>
+              <div class="field"><label>Work Email</label><input formControlName="b_email" type="email" placeholder="you@company.com" autocomplete="email"></div>
+              <div class="field"><label>Phone Number</label><input formControlName="b_phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel"></div>
+              <div class="field"><label>Role / Position</label><input formControlName="b_role" type="text" placeholder="Founder, Manager…"></div>
+              <div class="field"><label>Company Size</label>
+                <select formControlName="b_size"><option value="">Select size</option><option>1–10</option><option>11–50</option><option>51–200</option><option>201–500</option><option>500+</option></select>
+              </div>
+            </div>
+
+            <div class="section-label">Business details</div>
+            <div class="grid">
+              <div class="field full" [class.bad]="bad(business, 'b_name')"><label>Business Name <span class="req">*</span></label><input formControlName="b_name" type="text" placeholder="Business name"><span class="err-msg">Please enter the business name.</span></div>
+              <div class="field"><label>Business Category</label>
+                <select formControlName="b_cat"><option value="">Select category</option><option>Insurance</option><option>Finance</option><option>Legal</option><option>Healthcare</option><option>Real Estate</option><option>Retail</option><option>Education</option><option>Other</option></select>
+              </div>
+              <div class="field"><label>Business Sub-Category</label><input formControlName="b_subcat" type="text" placeholder="e.g. Motor insurance"></div>
+              <div class="field full"><label>Short Description</label><textarea formControlName="b_desc" placeholder="A sentence or two about what the business does."></textarea></div>
+              <div class="field"><label>Business Type</label>
+                <select formControlName="b_type"><option value="">Select type</option><option>Sole proprietorship</option><option>Partnership</option><option>Private limited</option><option>Public limited</option><option>LLP</option><option>Other</option></select>
+              </div>
+              <div class="field"><label>Primary Goal</label>
+                <select formControlName="b_goal"><option value="">Select goal</option><option>Generate leads</option><option>Answer customer queries</option><option>Book appointments</option><option>Provide support</option><option>Other</option></select>
+              </div>
+            </div>
+
+            <div class="section-label">Availability</div>
+            <div class="grid">
+              <div class="field" [class.bad]="bad(business, 'b_hours')"><label>Availability Hours <span class="req">*</span></label>
+                <select formControlName="b_hours"><option value="">Select</option><option>24/7</option><option>Business hours</option><option>Weekdays only</option><option>Custom</option></select>
+                <span class="err-msg">Please choose availability.</span>
+              </div>
+              <div class="field"><label>Availability Times <span class="opt">optional</span></label>
+                <div class="time-row"><input formControlName="b_from" type="time"><span class="dash">to</span><input formControlName="b_to" type="time"></div>
+              </div>
+            </div>
+
+            <div class="section-label">Links &amp; address</div>
+            <div class="grid">
+              <div class="field"><label>Website URL</label><input formControlName="b_web" type="url" placeholder="https://"></div>
+              <div class="field"><label>Google Business Profile Link</label><input formControlName="b_gbp" type="url" placeholder="https://"></div>
+              <div class="field full"><label>Business Address</label><input formControlName="b_addr" type="text" placeholder="Street, city, state, PIN"></div>
+              <div class="field"><label>Facebook Link</label><input formControlName="b_fb" type="url" placeholder="https://facebook.com/"></div>
+              <div class="field"><label>Instagram Link</label><input formControlName="b_ig" type="url" placeholder="https://instagram.com/"></div>
+              <div class="field full"><label>LinkedIn Link</label><input formControlName="b_li" type="url" placeholder="https://linkedin.com/company/"></div>
+            </div>
+          </div>
+
+          <div class="pane" [class.on]="current() === 'broker'" [formGroup]="broker">
+            <div class="fhead">
+              <span class="fi" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v6c0 4.4-3.4 7.4-8 8-4.6-.6-8-3.6-8-8V7z"/><path d="M9 12l2 2 4-4"/></svg></span>
+              <div><h2>Add a broker to AI Double</h2><span>Verified once, then matched to people who need you.</span></div>
+            </div>
+
+            <div class="section-label">Broker details</div>
+            <div class="grid">
+              <div class="field full" [class.bad]="bad(broker, 'k_name')"><label>Broker Name <span class="req">*</span></label><input formControlName="k_name" type="text" placeholder="Full name / firm name"><span class="err-msg">Please enter the broker name.</span></div>
+              <div class="field"><label>Broker Code</label><input formControlName="k_code" type="text" placeholder="Broker code"></div>
+              <div class="field"><label>Business Category</label>
+                <select formControlName="k_cat"><option value="">Select category</option><option>Insurance</option><option>Real Estate</option><option>Finance / Loans</option><option>Investments</option><option>Other</option></select>
+              </div>
+              <div class="field"><label>Business Sub-Category</label><input formControlName="k_subcat" type="text" placeholder="e.g. Health insurance"></div>
+              <div class="field full"><label>Description</label><textarea formControlName="k_desc" placeholder="Briefly describe your broking services."></textarea></div>
+            </div>
+
+            <div class="section-label">Contact</div>
+            <div class="grid">
+              <div class="field" [class.bad]="bad(broker, 'k_email')"><label>Email Id <span class="req">*</span></label><input formControlName="k_email" type="email" placeholder="you@email.com"><span class="err-msg">Enter a valid email.</span></div>
+              <div class="field" [class.bad]="bad(broker, 'k_phone')"><label>Phone Number <span class="req">*</span></label><input formControlName="k_phone" type="tel" placeholder="+91 98765 43210"><span class="err-msg">Enter a valid phone number.</span></div>
+              <div class="field full"><label>Address</label><input formControlName="k_addr" type="text" placeholder="Office address"></div>
+            </div>
+
+            <div class="section-label">Registration &amp; compliance</div>
+            <div class="grid">
+              <div class="field"><label>GST Number</label><input formControlName="k_gst" type="text" placeholder="GSTIN"></div>
+              <div class="field"><label>TAN Number</label><input formControlName="k_tan" type="text" placeholder="TAN"></div>
+              <div class="field"><label>CIN Number</label><input formControlName="k_cin" type="text" placeholder="CIN"></div>
+              <div class="field"><label>Licence No</label><input formControlName="k_lic" type="text" placeholder="Licence number"></div>
+              <div class="field"><label>Licence Expiry Date</label><input formControlName="k_licexp" type="date"></div>
+              <div class="field full"><label>Bank Details</label><input formControlName="k_bank" type="text" placeholder="Account name, number, IFSC"></div>
+            </div>
+
+            <div class="section-label">Broking Licence Certificate</div>
+            <div class="drop" [class.drag]="dragging()" tabindex="0" role="button" aria-label="Upload broking licence certificate"
+                 (click)="openPicker(certificate)" (keydown)="pickerKeydown($event, certificate)"
+                 (dragover)="dragOver($event)" (dragenter)="dragOver($event)"
+                 (dragleave)="dragLeave($event)" (drop)="drop($event, certificate)">
+              <span class="di" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><path d="M12 3v13"/></svg></span>
+              <b>Drag and drop your certificate here</b>
+              <span>or click to browse · PDF, JPG or PNG · up to 10 MB</span>
+              <input type="file" #certificate accept=".pdf,.jpg,.jpeg,.png" aria-label="Certificate file" (change)="fileChosen($event)">
+              <div class="filename" [style.display]="fileName() ? 'flex' : null"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>{{ fileName() }}</span></div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <p class="note">By continuing you agree to our Terms and Privacy Policy. Required fields are marked <span style="color:var(--err)">*</span>.</p>
+            <button type="submit" class="btn primary" [disabled]="submitting()">
+              @if (submitting()) {
+                Creating…
+              } @else {
+                Create account <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              }
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="done on">
+          <div class="ring"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h2>{{ doneHeading() }}</h2>
+          <p>{{ doneNote() }}</p>
+          <a routerLink="/" fragment="download" class="btn primary">Download the app <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+      }
+    </div>
+  </div>
+</main>
