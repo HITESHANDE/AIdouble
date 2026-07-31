@@ -1,8 +1,25 @@
 import { Component, ElementRef, inject, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { InstanceData, JobTypeName, SignupApi } from './signup-api';
 
 export type AccountType = 'individual' | 'business' | 'broker';
+
+const JOB_TYPE: Record<AccountType, JobTypeName> = {
+  individual: 'Members',
+  business: 'Business',
+  broker: 'Brokers',
+};
+
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const ALL_DAYS = [...WEEKDAYS, 'Saturday', 'Sunday'];
+
+const AVAILABILITY_DAYS: Record<string, string[]> = {
+  '24/7': ALL_DAYS,
+  'Business hours': WEEKDAYS,
+  'Weekdays only': WEEKDAYS,
+  Custom: ALL_DAYS,
+};
 
 const filledName = (control: AbstractControl) =>
   String(control.value ?? '').trim().length > 1 ? null : { filledName: true };
@@ -39,6 +56,7 @@ const DONE_NOTE: Record<AccountType, string> = {
 })
 export class Signup {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly api = inject(SignupApi);
 
   protected readonly current = signal<AccountType>('individual');
   protected readonly submitted = signal(false);
@@ -46,6 +64,7 @@ export class Signup {
   protected readonly done = signal(false);
   protected readonly fileName = signal('');
   protected readonly dragging = signal(false);
+  protected readonly submitError = signal('');
 
   protected readonly individual = new FormGroup({
     name: new FormControl('', filledName),
@@ -116,6 +135,7 @@ export class Signup {
   protected select(type: AccountType) {
     this.current.set(type);
     this.submitted.set(false);
+    this.submitError.set('');
   }
 
   protected bad(group: FormGroup, control: string) {
@@ -163,17 +183,91 @@ export class Signup {
   protected submit(event: Event) {
     event.preventDefault();
     this.submitted.set(true);
+    this.submitError.set('');
     const group = this.activeGroup();
     if (group.invalid) {
       this.focusFirstInvalid(group);
       return;
     }
     this.submitting.set(true);
-    setTimeout(() => {
-      this.submitting.set(false);
-      this.done.set(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 800);
+    this.api.createInstance(JOB_TYPE[this.current()], this.instanceData(), {
+      next: () => {
+        this.submitting.set(false);
+        this.done.set(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      error: (message) => {
+        this.submitting.set(false);
+        this.submitError.set(message);
+      },
+    });
+  }
+
+  private instanceData(): InstanceData {
+    if (this.current() === 'business') return this.businessData();
+    if (this.current() === 'broker') return this.brokerData();
+    return this.individualData();
+  }
+
+  private individualData() {
+    const value = this.individual.getRawValue();
+    return this.compact({
+      Name: value.name,
+      Email: value.email,
+      'Mobile No': [value.dialcode, value.mobile].filter(Boolean).join(' '),
+      Address: value.address,
+      City: value.city,
+      Country: value.country,
+    });
+  }
+
+  private businessData() {
+    const value = this.business.getRawValue();
+    return {
+      ...this.compact({
+        'First Name': value.b_first,
+        'Last Name': value.b_last,
+        'Work Email': value.b_email,
+        'Phone Number': value.b_phone,
+        'Role / Position ': value.b_role,
+        'Business Name': value.b_name,
+        'Business Category': value.b_cat,
+        'Short Description': value.b_desc,
+        'Website URL': value.b_web,
+        'Google Business Profile Link': value.b_gbp,
+        'Business Address': value.b_addr,
+        'Facebook Link': value.b_fb,
+        'Instagram Link': value.b_ig,
+        'Linkedin Link': value.b_li,
+      }),
+      'Availabilty Hours': AVAILABILITY_DAYS[value.b_hours ?? ''] ?? ALL_DAYS,
+    };
+  }
+
+  private brokerData() {
+    const value = this.broker.getRawValue();
+    return this.compact({
+      'Broker Name': value.k_name,
+      'Broker Code': value.k_code,
+      'Business Category': value.k_cat,
+      Description: value.k_desc,
+      'Email Id': value.k_email,
+      'Phone Number': value.k_phone,
+      Address: value.k_addr,
+      'Licence Expiry Date': value.k_licexp,
+      'Bank Details': value.k_bank,
+    });
+  }
+
+  private compact(fields: Record<string, string | null>) {
+    const data: Record<string, string> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      const trimmed = String(value ?? '').trim();
+      if (trimmed) {
+        data[key] = trimmed;
+      }
+    }
+    return data;
   }
 
   private activeGroup() {

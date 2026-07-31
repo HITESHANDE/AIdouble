@@ -43,7 +43,35 @@ Output goes to `dist/aidouble/browser`.
 | `src/app/faq/` | FAQ |
 | `src/app/download/` | App download card and QR code |
 | `src/app/footer/` | Footer |
+| `src/app/signup/signup-api.ts` | Posts the signup form to the Gosure public create-instance API |
 | `public/CNAME` | Custom domain `aidouble.ai`, copied into the build output |
+
+## Signup submission
+
+The signup form posts to
+`https://dev.gosure.ai/api/v1/public/create-instance?jobTypeName=<type>` with the
+header `X-Tenant: aidouble` and a body of `{ "data": { ... } }`.
+
+| Account type | Job type |
+| --- | --- |
+| Individual | `Members` |
+| Business | `Business` |
+| Broker | `Brokers` |
+
+The job types validate their fields. These form fields are not sent, because the
+job type expects a different type or a different option list:
+
+- Business: `Company Size`, `Business Type`, `Primary Goal`, `Availabilty Times`,
+  `Business SubCategory`
+- Broker: `GST Number`, `TAN Number`, `CIN Number`, `Licence No`,
+  `Business SubCategory`
+
+`Availabilty Hours` is a weekday multi-select on the job type and cannot be
+omitted, because the server default fails its own validation. The form's choice
+maps to weekdays: `Business hours` and `Weekdays only` send Monday to Friday,
+`24/7` and `Custom` send all seven days.
+
+The broking licence certificate is not uploaded. This endpoint takes JSON only.
 
 ## Deployment
 
