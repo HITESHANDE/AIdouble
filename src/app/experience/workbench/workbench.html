@@ -116,7 +116,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 0 1 8-9h2a8 8 0 0 1 8 8z"/></svg>Chat
           </button>
         </div>
-        <span class="xz-modenote">{{ agent().label }} · {{ agent().category }}</span>
+        <span class="xz-modenote">{{ agent().label }}{{ agent().category !== agent().label ? ' · ' + agent().category : '' }}</span>
       </div>
 
       @if (mode() === 'voice') {
