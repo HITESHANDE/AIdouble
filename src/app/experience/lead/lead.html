@@ -1,0 +1,77 @@
+<section id="xz-lead">
+  <div class="xz-leadband">
+    <div class="xz-lead-h">
+      <h2>Start your subscription.</h2>
+      <p>Your documents, your brand, your channels. Live the same week.</p>
+    </div>
+
+    <div class="xz-chosen">
+      <span class="xz-chosen-lbl">Selected plan</span>
+      <div class="xz-chosen-row">
+        <b>{{ plan().name }}</b>
+        <span class="xz-chosen-price">
+          {{ planPrice() !== null ? region().currencySymbol + planPrice() + '/month · ' + plan().conversations + ' conversations included' : 'Committed volume' }}
+        </span>
+        <a href="#xz-onboarding" class="xz-chosen-change">Change</a>
+      </div>
+    </div>
+
+    <div class="xz-leadgrid">
+      <div class="xz-lcard" [class.done]="callDone()">
+        @if (!callDone()) {
+          <div class="xz-lform">
+            <h4>Book a demo</h4>
+            <p>Thirty minutes on your documents and one live queue.</p>
+            <div class="xz-frow"><input class="xz-dfield" [value]="name()" (input)="name.set($any($event.target).value)" placeholder="Your name" autocomplete="name" aria-label="Your name"></div>
+            <div class="xz-frow"><input class="xz-dfield" [value]="company()" (input)="company.set($any($event.target).value)" placeholder="Company" autocomplete="organization" aria-label="Company"></div>
+            <div class="xz-frow two">
+              <select class="xz-dfield" aria-label="Country code"><option>{{ region().code }}</option></select>
+              <input class="xz-dfield" [value]="phone()" (input)="phone.set($any($event.target).value)" inputmode="tel" placeholder="Phone number" autocomplete="tel" aria-label="Phone number">
+            </div>
+            <div class="xz-frow"><input class="xz-dfield" type="email" [value]="email()" (input)="email.set($any($event.target).value)" placeholder="Work email" autocomplete="email" aria-label="Work email"></div>
+            <div class="xz-frow">
+              <select class="xz-dfield" [value]="volume()" (change)="volume.set($any($event.target).value)" aria-label="Monthly conversation volume">
+                <option value="">Monthly conversations…</option>
+                <option>Under 5,000</option><option>5,000 – 25,000</option>
+                <option>25,000 – 100,000</option><option>Over 100,000</option>
+              </select>
+            </div>
+            <button type="button" class="xz-btn xz-accent" style="width:100%" (click)="submitCall($event)">Book the demo
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            @if (callError()) { <p class="xz-lerr show">{{ callError() }}</p> }
+            <p class="xz-lfoot">Solutions engineer, not sales.</p>
+          </div>
+        } @else {
+          <div class="xz-ldone">
+            <span class="xz-lead-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <b>Demo requested.</b><p>{{ callDoneText() }}</p>
+          </div>
+        }
+      </div>
+
+      <div class="xz-lcard" [class.done]="subDone()">
+        @if (!subDone()) {
+          <div class="xz-lform">
+            <h4>Subscribe</h4>
+            <p>Confirm the plan and where it should be published — {{ plan().name }} selected above.</p>
+            <div class="xz-picks">
+              @for (target of publishTargets; track target) {
+                <button type="button" class="xz-pk" [class.on]="picked().has(target)" (click)="togglePublish(target)">{{ target }}</button>
+              }
+            </div>
+            <div class="xz-frow"><input class="xz-dfield" type="email" [value]="subEmail()" (input)="subEmail.set($any($event.target).value)" placeholder="Work email" autocomplete="email" aria-label="Work email"></div>
+            <button type="button" class="xz-btn xz-light" style="width:100%" (click)="submitSubscribe($event)">Subscribe and start
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            @if (subError()) { <p class="xz-lerr show">{{ subError() }}</p> }
+            <p class="xz-lfoot">First 14 days free. Cancel any time.</p>
+          </div>
+        } @else {
+          <div class="xz-ldone">
+            <span class="xz-lead-ok" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <b>Subscription started.</b><p>{{ subDoneText() }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,23 @@
+<header class="xz-chrome">
+  <div class="wrap xz-chrome-in">
+    <a routerLink="/" class="xz-logo"><span class="xz-dot" aria-hidden="true"></span>AI <em>Double</em></a>
+    <span class="xz-zonetag">Experience Zone</span>
+    <span style="flex:1"></span>
+    <div class="xz-chrome-r">
+      <div class="xz-regionsel">
+        <button type="button" class="xz-regionbtn" (click)="toggleMenu($event)" [attr.aria-expanded]="menuOpen()">
+          <span class="fl">{{ region().flag }}</span><span>{{ region().name }}</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="xz-regionmenu" [class.open]="menuOpen()" role="menu">
+          @for (r of regions; track r.id) {
+            <button type="button" role="menuitem" [class.on]="r.id === region().id" (click)="selectRegion(r)">
+              <span>{{ r.flag }}</span>{{ r.name }}
+            </button>
+          }
+        </div>
+      </div>
+      <a href="#xz-lead" class="xz-btn xz-light sm">Book a demo</a>
+    </div>
+  </div>
+</header>

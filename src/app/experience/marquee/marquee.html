@@ -1,0 +1,11 @@
+<div class="xz-marquee" aria-hidden="true">
+  <div class="xz-mq-track">
+    @for (copy of [0, 1]; track copy) {
+      <span>
+        @for (item of items; track $index) {
+          {{ item }}<i>✦</i>
+        }
+      </span>
+    }
+  </div>
+</div>
