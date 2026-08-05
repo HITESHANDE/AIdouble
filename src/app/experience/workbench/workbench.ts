@@ -386,7 +386,7 @@ export class XzWorkbench implements OnInit {
       this.chatPending.set(false);
       this.chatMessages.update((list) => [
         ...list,
-        { role: 'agent', text: `Once LibreChat is wired in, ${agentName}'s real answer shows up right here.` },
+        { role: 'agent', text: `Once ${agentName} is connected, its real answer shows up right here.` },
       ]);
     }, 1200);
   }
