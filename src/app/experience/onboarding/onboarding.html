@@ -1,0 +1,46 @@
+<section id="xz-onboarding">
+  <div class="xz-pane-intro">
+    <div>
+      <span class="xz-stepnote">Onboarding</span>
+      <h2>Subscribe, load, brand, publish.</h2>
+      <p>A subscription, not a project. Every plan includes a call package; overage is billed per conversation.</p>
+    </div>
+  </div>
+
+  <div class="xz-steps">
+    @for (s of steps; track s[0]; let i = $index) {
+      <div class="xz-step" [class.done]="i === 0">
+        <span class="xz-sn">{{ s[0] }}{{ i === 0 ? ' · done' : '' }}</span><b>{{ s[1] }}</b><span>{{ s[2] }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="xz-plans2">
+    @for (p of plans; track p.id) {
+      <div class="xz-plan2" [class.on]="p.id === selectedPlan().id">
+        @if (p.hot) { <span class="xz-rib">Most chosen</span> }
+        <span class="xz-pn">{{ p.name }}</span>
+        <div class="xz-pa">
+          @if (price(p) !== null) { {{ region().currencySymbol }}{{ price(p) }} <em>/month</em> } @else { Talk to us }
+        </div>
+        <div class="xz-pincl">
+          @if (price(p) !== null) {
+            <b>{{ p.conversations }}</b> conversations or <b>{{ p.minutes }}</b> call minutes included · then {{ region().currencySymbol }}{{ overage(p) }}/conversation
+          } @else {
+            Committed volume from {{ region().currencySymbol }}{{ overage(p) }}/conversation
+          }
+        </div>
+        <ul>
+          @for (f of p.features; track f.label) {
+            <li [class.off]="!f.included"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>{{ f.label }}</li>
+          }
+        </ul>
+        <button type="button" class="xz-pick2" (click)="select(p)">{{ p.id === selectedPlan().id ? 'Selected' : (price(p) !== null ? 'Choose ' + p.name : 'Talk to us') }}</button>
+      </div>
+    }
+  </div>
+  <p class="xz-plannote">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+    <span>Every plan includes a call package. Conversations beyond it are billed per conversation, shown in the business case below. Fourteen days free, cancel any time.</span>
+  </p>
+</section>

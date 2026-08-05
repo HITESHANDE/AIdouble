@@ -1,0 +1,37 @@
+<section class="xz-roi" id="xz-roi">
+  <div class="xz-roi-h">
+    <h2>Business case.</h2>
+    <p>Your volumes, your assumptions. The working is shown.</p>
+  </div>
+  <div class="xz-roi-grid">
+    <div class="xz-roi-in">
+      <div class="xz-rfield">
+        <label><span class="xz-rfl">Conversations / month</span><span class="xz-rv">{{ num(convs()) }}</span></label>
+        <input type="range" min="100" max="50000" step="100" [value]="convs()" (input)="convs.set(+$any($event.target).value)">
+      </div>
+      <div class="xz-rfield">
+        <label><span class="xz-rfl">Average handle time</span><span class="xz-rv">{{ aht() }} min</span></label>
+        <input type="range" min="1" max="15" step="0.5" [value]="aht()" (input)="aht.set(+$any($event.target).value)">
+      </div>
+      <div class="xz-rfield">
+        <label><span class="xz-rfl">Agent cost</span><span class="xz-rv">{{ money(cost(), 2) }} / min</span></label>
+        <input type="range" [min]="region().costPerMin * 0.3" [max]="region().costPerMin * 2.5" [step]="region().costPerMin / 40" [value]="cost()" (input)="cost.set(+$any($event.target).value)">
+      </div>
+      <div class="xz-rfield">
+        <label><span class="xz-rfl">Containment rate</span><span class="xz-rv">{{ contain() }}%</span></label>
+        <input type="range" min="30" max="90" step="1" [value]="contain()" (input)="contain.set(+$any($event.target).value)">
+      </div>
+    </div>
+    <div class="xz-roi-out">
+      <div class="xz-rout"><b class="win">{{ money(netSaving()) }}</b><span>net saving per month</span></div>
+      <div class="xz-rout"><b>{{ money(netSaving() * 12) }}</b><span>per year at this volume</span></div>
+      <div class="xz-rout"><b>{{ num(Math.round(minutes() / 60)) }} hrs</b><span>agent time returned monthly · {{ num(Math.round(minutes() / 60 / 160)) }} FTE</span></div>
+      <div class="xz-rout"><b>{{ money(perConvo(), 2) }} <span class="xz-rout-cmp">vs {{ money(aht() * cost(), 2) }}</span></b><span>cost per resolved conversation on {{ plan().name }}, vs agent-handled</span></div>
+      <p class="xz-roi-note">
+        <code>{{ num(convs()) }} × {{ contain() }}% = {{ num(contained()) }} resolved</code> ·
+        <code>× {{ aht() }} min × {{ money(cost(), 2) }} = {{ money(humanCost()) }}</code> ·
+        <code>less {{ money(platformCost()) }} subscription + overage</code>
+      </p>
+    </div>
+  </div>
+</section>

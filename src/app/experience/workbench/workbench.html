@@ -1,0 +1,200 @@
+<section class="xz-workbench" id="xz-workbench">
+  <div class="xz-pane-intro">
+    <div>
+      <span class="xz-stepnote">Live demo</span>
+      <h1>What your customers would experience.</h1>
+      <p>Pick an agent, browse the businesses behind it, then start a live session — LibreChat drives the conversation, and LiveKit brings it to voice.</p>
+    </div>
+  </div>
+
+  <div class="xz-vgridwrap">
+    <aside class="xz-rail">
+      <h4>Agents</h4>
+      <div class="xz-rail-list">
+        @for (opt of agents(); track opt.key) {
+          <button type="button" class="xz-rl" [class.on]="opt.key === agentKey()" (click)="selectAgent(opt.key)">
+            <span class="xz-ri" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor" stroke="none"/></svg>
+            </span>
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+      <div class="xz-rail-foot">
+        <h4>Language</h4>
+        <div class="xz-langrow">
+          @for (lang of languages; track lang) {
+            <button type="button" class="xz-lang" [class.on]="lang === language()" (click)="language.set(lang)">{{ lang }}</button>
+          }
+        </div>
+      </div>
+    </aside>
+
+    <aside class="xz-kpanel">
+      @if (!selectedBusiness()) {
+        <h4>Businesses</h4>
+        <span class="xz-kfor">{{ agent().category }}</span>
+        <div class="xz-kscroll">
+          @if (businessesLoading()) {
+            <div class="xz-biz-empty"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading businesses…</div>
+          } @else if (businessesError()) {
+            <div class="xz-biz-empty">Couldn't load businesses right now.</div>
+          } @else if (!businesses().length) {
+            <div class="xz-biz-empty">No businesses listed under {{ agent().category }} yet.</div>
+          } @else {
+            @for (biz of businesses(); track biz.id) {
+              <button type="button" class="xz-kitem xz-biz-item" (click)="selectBusiness(biz.id)">
+                <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg></span>
+                <span class="xz-kt">
+                  <b>{{ biz.data['Business Name'] }}</b>
+                  @if (biz.data['Short Description']) { <span>{{ biz.data['Short Description'] }}</span> }
+                </span>
+              </button>
+            }
+          }
+        </div>
+      } @else {
+        <button type="button" class="xz-biz-back" (click)="backToBusinesses()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          Businesses
+        </button>
+        <span class="xz-kfor">{{ selectedBusiness()!.data['Business Name'] }}</span>
+
+        <div class="xz-kscroll">
+          <h4 style="margin-top:6px">Services</h4>
+          @if (servicesLoading()) {
+            <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
+          } @else if (!services().length) {
+            <div class="xz-biz-empty sm">No services listed yet.</div>
+          } @else {
+            @for (svc of services(); track svc.id) {
+              <div class="xz-kitem">
+                <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
+                <span class="xz-kt"><b>{{ svc.data['Service Name'] }}</b>
+                  @if (svc.data['AI Description']) { <span>{{ svc.data['AI Description'] }}</span> }
+                </span>
+              </div>
+            }
+          }
+
+          <h4 style="margin-top:14px">Products</h4>
+          @if (productsLoading()) {
+            <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
+          } @else if (!products().length) {
+            <div class="xz-biz-empty sm">No products listed yet.</div>
+          } @else {
+            @for (prod of products(); track prod.id) {
+              <div class="xz-kitem">
+                <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
+                <span class="xz-kt">
+                  <b>{{ prod.data['Product Name'] }}</b>
+                  <span>
+                    @if (prod.data['Price']) { <span class="xz-prod-price">{{ prod.data['Price'] }}</span> }
+                    @if (prod.data['AI Description']) { {{ prod.data['AI Description'] }} }
+                  </span>
+                </span>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <div class="xz-kpanel-foot">
+        <input type="file" id="xz-upload-input" multiple hidden accept=".pdf,.doc,.docx,.txt,.csv,.xlsx" (change)="onFilesSelected($event)">
+        <label for="xz-upload-input" class="xz-btn xz-light sm xz-upload-btn">Upload knowledge</label>
+        <span class="xz-upload-status">{{ uploadedFiles().length ? uploadedFiles().length + ' document' + (uploadedFiles().length === 1 ? '' : 's') + ' indexed' : 'No documents indexed yet' }}</span>
+      </div>
+    </aside>
+
+    <div class="xz-agentcol">
+      <div class="xz-modebar">
+        <div class="xz-modetoggle" role="tablist" aria-label="Channel">
+          <button type="button" [class.on]="mode() === 'voice'" role="tab" [attr.aria-selected]="mode() === 'voice'" (click)="selectMode('voice')">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg>Voice
+          </button>
+          <button type="button" [class.on]="mode() === 'chat'" role="tab" [attr.aria-selected]="mode() === 'chat'" (click)="selectMode('chat')">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 0 1 8-9h2a8 8 0 0 1 8 8z"/></svg>Chat
+          </button>
+        </div>
+        <span class="xz-modenote">{{ agent().label }} · {{ agent().category }}</span>
+      </div>
+
+      @if (mode() === 'voice') {
+        <div class="xz-callcard xz-solo">
+          <div class="xz-callside">
+            <span class="xz-agentline">Now speaking with</span>
+            <span class="xz-agentname">{{ agent().label }}</span>
+            <button type="button" class="xz-orb" [class.on]="calling() || connected()" [class.listening]="calling()" [class.speaking]="connected()" (click)="startDemo()" aria-label="Start call">
+              <span class="xz-ic" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2.2 2A17 17 0 0 1 3 6.2 2 2 0 0 1 5 4z"/></svg>
+              </span>
+            </button>
+            <button type="button" class="xz-btn xz-light xz-callbtn" (click)="startDemo()">{{ hubLabel() }}</button>
+            <span class="xz-statusline">{{ connected() ? 'Connected' : calling() ? 'Connecting…' : 'Press to start' }}</span>
+            <p class="xz-privacy">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>{{ connected() ? 'LibreChat drafted the reply and LiveKit is reading it aloud.' : 'Uses your mic, right in the browser. No app, no download.' }}</span>
+            </p>
+            <div class="xz-asks">
+              @for (p of agent().prompts; track p) {
+                <span class="xz-ask"><span class="xz-qm">›</span>{{ p }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="xz-kchat">
+          <div class="xz-kc-body">
+            @if (!chatMessages().length) {
+              <div class="xz-empty">
+                <span class="xz-ei" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg>
+                </span>
+                <h3>{{ agent().label }}</h3>
+                <p>{{ agent().line }}</p>
+              </div>
+            } @else {
+              @for (m of chatMessages(); track $index) {
+                <div class="xz-msg" [class.u]="m.role === 'user'" [class.a]="m.role === 'agent'">
+                  <span class="xz-mav" aria-hidden="true">{{ m.role === 'user' ? 'YOU' : 'AD' }}</span>
+                  <div class="xz-mb">
+                    @if (m.role === 'agent') {
+                      <div class="xz-answer" [innerHTML]="renderMarkdown(m.text)"></div>
+                    } @else {
+                      {{ m.text }}
+                    }
+                  </div>
+                </div>
+              }
+              @if (chatPending()) {
+                <div class="xz-msg a">
+                  <span class="xz-mav" aria-hidden="true">AD</span>
+                  <div class="xz-mb"><span class="xz-thinkdots"><i></i><i></i><i></i></span></div>
+                </div>
+              }
+            }
+          </div>
+          <div class="xz-kc-foot">
+            @if (!chatMessages().length && agent().prompts.length) {
+              <div class="xz-suggest">
+                @for (p of agent().prompts; track p) {
+                  <button type="button" class="xz-sg" [disabled]="chatPending()" (click)="sendMessage(p)">{{ p }}</button>
+                }
+              </div>
+            } @else if (suggestedReplies().length && !chatPending()) {
+              <div class="xz-suggest">
+                @for (reply of suggestedReplies(); track reply) {
+                  <button type="button" class="xz-sg" (click)="sendMessage(reply)">{{ reply }}</button>
+                }
+              </div>
+            }
+            <div class="xz-kc-in">
+              <input class="xz-fieldy" [attr.aria-label]="'Message ' + agent().label" [placeholder]="'Ask ' + agent().label + '…'" [value]="composerText()" (input)="composerText.set($any($event.target).value)" (keydown.enter)="sendMessage()">
+              <button type="button" class="xz-btn xz-accent" [disabled]="!composerText().trim() || chatPending()" (click)="sendMessage()">Ask</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
