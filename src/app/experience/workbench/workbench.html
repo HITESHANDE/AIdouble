@@ -124,22 +124,46 @@
           <div class="xz-callside">
             <span class="xz-agentline">Now speaking with</span>
             <span class="xz-agentname">{{ agent().label }}</span>
-            <button type="button" class="xz-orb" [class.on]="calling() || connected()" [class.listening]="calling()" [class.speaking]="connected()" (click)="startDemo()" aria-label="Start call">
+            <button type="button" class="xz-orb" [class.on]="voiceActive()" [class.listening]="calling() || voiceState() === 'listening'" [class.speaking]="voiceState() === 'speaking'" (click)="toggleCall()" [attr.aria-label]="voiceActive() ? 'End call' : 'Start call'">
               <span class="xz-ic" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2.2 2A17 17 0 0 1 3 6.2 2 2 0 0 1 5 4z"/></svg>
               </span>
             </button>
-            <button type="button" class="xz-btn xz-light xz-callbtn" (click)="startDemo()">{{ hubLabel() }}</button>
-            <span class="xz-statusline">{{ connected() ? 'Connected' : calling() ? 'Connecting…' : 'Press to start' }}</span>
-            <p class="xz-privacy">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <span>{{ connected() ? 'Your agent drafted the reply and read it aloud.' : 'Uses your mic, right in the browser. No app, no download.' }}</span>
-            </p>
-            <div class="xz-asks">
-              @for (p of agent().prompts; track p) {
-                <span class="xz-ask"><span class="xz-qm">›</span>{{ p }}</span>
+            <div class="xz-callctl">
+              <button type="button" class="xz-btn xz-light xz-callbtn" (click)="toggleCall()">{{ hubLabel() }}</button>
+              @if (voiceActive()) {
+                <button type="button" class="xz-btn xz-light sm xz-mutebtn" [class.on]="voiceMuted()" (click)="toggleMute()">{{ voiceMuted() ? 'Unmute' : 'Mute' }}</button>
               }
             </div>
+            <span class="xz-statusline">{{ statusLabel() }}</span>
+            @if (voiceError()) {
+              <p class="xz-voice-err">{{ voiceError() }}</p>
+            }
+
+            @if (voiceLines().length) {
+              <div class="xz-vscript" #vscript>
+                @for (line of voiceLines(); track $index) {
+                  <div class="xz-vline" [class.u]="line.role === 'user'" [class.a]="line.role === 'agent'">
+                    <span class="xz-vwho">{{ line.role === 'user' ? 'You' : agent().label }}</span>
+                    @if (line.role === 'agent') {
+                      <div class="xz-vtext" [class.pending]="line.pending" [innerHTML]="renderMarkdown(line.text)"></div>
+                    } @else {
+                      <p class="xz-vtext" [class.pending]="line.pending">{{ line.text }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="xz-privacy">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>{{ connected() ? 'Speak now — the reply appears here as it is spoken.' : 'Uses your mic, right in the browser. No app, no download.' }}</span>
+              </p>
+              <div class="xz-asks">
+                @for (p of agent().prompts; track p) {
+                  <span class="xz-ask"><span class="xz-qm">›</span>{{ p }}</span>
+                }
+              </div>
+            }
           </div>
         </div>
       } @else {
