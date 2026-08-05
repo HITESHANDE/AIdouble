@@ -158,11 +158,6 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 <span>{{ connected() ? 'Speak now — the reply appears here as it is spoken.' : 'Uses your mic, right in the browser. No app, no download.' }}</span>
               </p>
-              <div class="xz-asks">
-                @for (p of agent().prompts; track p) {
-                  <span class="xz-ask"><span class="xz-qm">›</span>{{ p }}</span>
-                }
-              </div>
             }
           </div>
         </div>

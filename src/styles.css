@@ -291,12 +291,6 @@ p.xz-vtext.pending::after,.xz-vtext.pending > :last-child::after{content:'▍';m
 @keyframes xzcaret{0%,50%{opacity:1}51%,100%{opacity:0}}
 .xz-privacy{font-size:12px;color:rgba(255,252,245,.5);line-height:1.5;display:flex;gap:8px;text-align:left;max-width:40ch}
 .xz-privacy svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:3px}
-.xz-asks{display:flex;flex-wrap:wrap;gap:7px;padding-top:16px;border-top:1px solid var(--chrome-line);margin-top:2px;justify-content:center}
-.xz-ask{appearance:none;background:transparent;border:1.5px solid var(--chrome-line);border-radius:100px;padding:7px 13px;font-size:13px;color:rgba(255,252,245,.75);
-  transition:all .2s}
-.xz-ask:hover{background:var(--lime);border-color:var(--lime);color:var(--hard);font-weight:700}
-.xz-qm{color:var(--accent-2);margin-right:5px;font-family:var(--fm);font-size:10.5px}
-.xz-ask:hover .xz-qm{color:var(--hard)}
 
 .xz-kchat{background:var(--card);border:2px solid var(--hard);border-radius:26px;display:flex;flex-direction:column;
   min-height:520px;overflow:hidden;box-shadow:var(--sh)}
