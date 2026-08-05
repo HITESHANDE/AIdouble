@@ -170,7 +170,7 @@ export class LibrechatApi {
   /** The real GoSure user behind the configured token (decoded client-side —
    *  JWT payloads aren't encrypted, just base64url). Falls back to a stable
    *  per-browser anonymous id if there's no token or it can't be parsed. */
-  private userId(): string {
+  userId(): string {
     const claims = this.decodeJwt(LIBRECHAT_DEMO_TOKEN);
     const raw = claims?.['userId'] ?? claims?.['sub'];
     return typeof raw === 'string' && raw ? this.toHeaderSafeUserId(raw) : this.visitorId();

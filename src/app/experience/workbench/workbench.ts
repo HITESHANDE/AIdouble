@@ -1,13 +1,20 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { marked } from 'marked';
 import { LibrechatApi, parseConversationStarters } from '../librechat-api';
 import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData } from '../jobtypes-api';
+import { LivekitVoice, VoiceState, VoiceTranscript } from '../livekit-voice';
 
 export type XzMode = 'voice' | 'chat';
 
 export interface ChatMessage {
   role: 'user' | 'agent';
   text: string;
+}
+
+export interface VoiceLine {
+  role: 'user' | 'agent';
+  text: string;
+  pending: boolean;
 }
 
 interface AgentOption {
@@ -95,9 +102,10 @@ const LANGUAGES = ['English', 'Hindi', 'Telugu', 'Tamil'];
   selector: 'app-xz-workbench',
   templateUrl: './workbench.html',
 })
-export class XzWorkbench implements OnInit {
+export class XzWorkbench implements OnInit, OnDestroy {
   private readonly api = inject(LibrechatApi);
   private readonly jobTypesApi = inject(JobTypesApi);
+  private readonly voice = inject(LivekitVoice);
 
   protected readonly agents = signal<AgentOption[]>(FALLBACK_AGENTS);
   protected readonly languages = LANGUAGES;
@@ -128,9 +136,23 @@ export class XzWorkbench implements OnInit {
     () => this.businesses().find((b) => b.id === this.selectedBusinessId()) ?? null,
   );
 
-  // Voice-call demo state
-  protected readonly calling = signal(false);
-  protected readonly connected = signal(false);
+  // Voice-call state. A live agent list means agentKey() is a real LibreChat
+  // agent id, so the call goes to LiveKit; otherwise it stays simulated.
+  protected readonly voiceState = signal<VoiceState>('idle');
+  protected readonly voiceMuted = signal(false);
+  protected readonly voiceError = signal<string | null>(null);
+  protected readonly voiceLines = signal<VoiceLine[]>([]);
+  private voicePartialIndex: { user: number | null; agent: number | null } = { user: null, agent: null };
+
+  @ViewChild('vscript') private vscript?: ElementRef<HTMLElement>;
+
+  protected readonly calling = computed(() => this.voiceState() === 'connecting');
+  protected readonly connected = computed(
+    () => this.voiceState() !== 'idle' && this.voiceState() !== 'error' && this.voiceState() !== 'connecting',
+  );
+  protected readonly voiceActive = computed(
+    () => this.voiceState() !== 'idle' && this.voiceState() !== 'error',
+  );
 
   // Chat demo state
   protected readonly chatMessages = signal<ChatMessage[]>([]);
@@ -261,16 +283,14 @@ export class XzWorkbench implements OnInit {
 
   protected selectMode(mode: XzMode) {
     this.mode.set(mode);
-    this.calling.set(false);
-    this.connected.set(false);
+    this.endCall();
   }
 
   protected selectAgent(key: string) {
     this.agentKey.set(key);
     this.loadAgentDetail(key);
     this.loadBusinesses(this.agent().category);
-    this.calling.set(false);
-    this.connected.set(false);
+    this.endCall();
     this.chatMessages.set([]);
     this.chatPending.set(false);
     this.composerText.set('');
@@ -284,47 +304,93 @@ export class XzWorkbench implements OnInit {
   }
 
   protected hubLabel() {
-    if (this.connected()) return 'Live now';
-    if (this.calling()) return 'Connecting…';
+    if (this.voiceActive()) return 'End call';
     return 'Try call';
   }
 
-  protected startDemo() {
-    if (this.calling() || this.connected()) return;
-    this.calling.set(true);
+  protected statusLabel() {
+    switch (this.voiceState()) {
+      case 'connecting':
+        return 'Connecting…';
+      case 'listening':
+        return this.voiceMuted() ? 'Muted' : 'Listening';
+      case 'thinking':
+        return 'Thinking…';
+      case 'speaking':
+        return 'Speaking';
+      case 'error':
+        return 'Call ended';
+      default:
+        return 'Press to start';
+    }
+  }
 
-    if (this.live()) {
-      this.api.sendAgentMessage({ text: this.agent().line, agentId: this.agentKey() }).subscribe({
-        next: (evt) => {
-          if (evt.final) {
-            this.calling.set(false);
-            this.connected.set(true);
-            this.speak(evt.final.fullText);
-          } else if (evt.error) {
-            this.calling.set(false);
-            this.connected.set(true);
-          }
-        },
-        error: () => {
-          this.calling.set(false);
-          this.connected.set(true);
-        },
-      });
+  protected async toggleCall() {
+    if (this.voiceActive()) {
+      await this.endCall();
       return;
     }
 
-    setTimeout(() => {
-      this.calling.set(false);
-      this.connected.set(true);
-    }, 1500);
+    this.voiceError.set(null);
+    this.voiceLines.set([]);
+    this.voicePartialIndex = { user: null, agent: null };
+
+    if (!this.live()) {
+      this.voiceState.set('connecting');
+      setTimeout(() => this.voiceState.set('listening'), 1500);
+      return;
+    }
+
+    await this.voice.start({
+      agentId: this.agentKey(),
+      conversationId: this.conversationId(),
+      onState: (state) => this.voiceState.set(state),
+      onTranscript: (entry) => this.applyTranscript(entry),
+      onConversationId: (id) => this.conversationId.set(id),
+      onError: (message) => this.voiceError.set(message),
+    });
   }
 
-  /** Speaks LibreChat's real reply aloud as a stand-in for LiveKit voice
-   *  output, until real LiveKit room/audio plumbing is wired in. */
-  private speak(text: string) {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window) || !text) return;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  protected async endCall() {
+    await this.voice.stop();
+    this.voiceState.set('idle');
+    this.voiceMuted.set(false);
+    this.voicePartialIndex = { user: null, agent: null };
+  }
+
+  protected async toggleMute() {
+    this.voiceMuted.set(!this.voiceMuted());
+    await this.voice.setMuted(this.voiceMuted());
+  }
+
+  ngOnDestroy() {
+    this.endCall();
+  }
+
+  private applyTranscript(entry: VoiceTranscript) {
+    const index = this.voicePartialIndex[entry.role];
+    this.voiceLines.update((list) => {
+      if (index != null && list[index]) {
+        const copy = list.slice();
+        copy[index] = { role: entry.role, text: entry.text, pending: !entry.final };
+        return copy;
+      }
+      return [...list, { role: entry.role, text: entry.text, pending: !entry.final }];
+    });
+    if (index == null) {
+      this.voicePartialIndex[entry.role] = this.voiceLines().length - 1;
+    }
+    if (entry.final) {
+      this.voicePartialIndex[entry.role] = null;
+    }
+    this.scrollTranscript();
+  }
+
+  private scrollTranscript() {
+    setTimeout(() => {
+      const el = this.vscript?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
   }
 
   protected sendMessage(text?: string) {

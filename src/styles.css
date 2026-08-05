@@ -256,7 +256,39 @@ app-experience{display:block}
 .xz-ic{color:#fff}
 .xz-ic svg{width:38px;height:38px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .xz-callbtn{width:100%;max-width:220px}
+.xz-callctl{display:flex;gap:8px;align-items:center;justify-content:center;width:100%;max-width:300px}
+.xz-mutebtn{flex-shrink:0}
+.xz-mutebtn.on{background:var(--tang);color:var(--hard)}
 .xz-statusline{font-family:var(--fm);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,252,245,.55)}
+.xz-voice-err{font-size:12.5px;line-height:1.5;color:var(--tang);max-width:42ch;margin:0}
+.xz-vscript{width:100%;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;text-align:left;
+  padding:16px 4px 4px;margin-top:2px;border-top:1px solid var(--chrome-line)}
+.xz-vline{display:flex;flex-direction:column;gap:4px}
+.xz-vwho{font-family:var(--fm);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,252,245,.45)}
+.xz-vline.u .xz-vwho{color:rgba(156,134,255,.85)}
+.xz-vtext{margin:0;font-size:14.5px;line-height:1.6;color:rgba(255,252,245,.9)}
+.xz-vline.u .xz-vtext{color:rgba(255,252,245,.62)}
+.xz-vtext :first-child{margin-top:0}
+.xz-vtext :last-child{margin-bottom:0}
+.xz-vtext p{margin:0 0 8px}
+.xz-vtext ul,.xz-vtext ol{margin:0 0 8px;padding-left:20px}
+.xz-vtext li{margin:0 0 3px}
+.xz-vtext h1,.xz-vtext h2,.xz-vtext h3,.xz-vtext h4{font-family:var(--fd);font-weight:700;letter-spacing:-.01em;
+  font-size:15.5px;margin:10px 0 6px;color:var(--paper)}
+.xz-vtext strong{color:var(--paper)}
+.xz-vtext em{color:rgba(255,252,245,.78)}
+.xz-vtext a{color:var(--mint);text-decoration:underline}
+.xz-vtext code{font-family:var(--fm);font-size:.88em;background:rgba(255,252,245,.1);padding:1px 5px;border-radius:4px}
+.xz-vtext pre{background:rgba(255,252,245,.07);border:1px solid var(--chrome-line);border-radius:8px;
+  padding:10px 12px;overflow-x:auto;margin:0 0 8px}
+.xz-vtext pre code{background:none;padding:0}
+.xz-vtext blockquote{margin:0 0 8px;padding-left:11px;border-left:2px solid var(--chrome-line);color:rgba(255,252,245,.68)}
+.xz-vtext table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 8px;display:block;overflow-x:auto}
+.xz-vtext th,.xz-vtext td{border:1px solid var(--chrome-line);padding:5px 8px;text-align:left}
+.xz-vtext hr{border:0;border-top:1px solid var(--chrome-line);margin:10px 0}
+p.xz-vtext.pending::after,.xz-vtext.pending > :last-child::after{content:'▍';margin-left:2px;
+  animation:xzcaret 1s steps(2) infinite;color:var(--mint)}
+@keyframes xzcaret{0%,50%{opacity:1}51%,100%{opacity:0}}
 .xz-privacy{font-size:12px;color:rgba(255,252,245,.5);line-height:1.5;display:flex;gap:8px;text-align:left;max-width:40ch}
 .xz-privacy svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:3px}
 .xz-asks{display:flex;flex-wrap:wrap;gap:7px;padding-top:16px;border-top:1px solid var(--chrome-line);margin-top:2px;justify-content:center}
