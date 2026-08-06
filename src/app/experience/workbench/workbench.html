@@ -158,6 +158,9 @@
             @if (voiceError()) {
               <p class="xz-voice-err">{{ voiceError() }}</p>
             }
+            @if (voiceNoiseFilterUnavailable() && !voiceError()) {
+              <span class="xz-statusline xz-statuslong">Background-noise filtering isn't available in this browser — using standard mic settings.</span>
+            }
 
             @if (visibleVoiceLines().length) {
               <div class="xz-vscript" #vscript>

@@ -32,6 +32,9 @@ export interface VoiceSessionOptions {
   onTranscript: (entry: VoiceTranscript) => void;
   onConversationId?: (conversationId: string) => void;
   onError: (message: string) => void;
+  /** Fires when the background-voice/noise filter couldn't be enabled — the
+   *  call still proceeds on the raw mic, just without that extra filtering. */
+  onNoiseFilterUnavailable?: () => void;
 }
 
 interface AgentDataMessage {
@@ -234,12 +237,16 @@ export class LivekitVoice {
       const { isKrispNoiseFilterSupported, KrispNoiseFilter } = await import('@livekit/krisp-noise-filter');
       if (!isKrispNoiseFilterSupported()) {
         this.log('Krisp noise filter not supported on this browser/device — using raw mic constraints only');
+        this.options?.onNoiseFilterUnavailable?.();
         return;
       }
-      await track.setProcessor(KrispNoiseFilter({ useBVC: true, quality: 'high' }));
+      // 'high' quality was pegging the CPU badly enough to make the whole
+      // page hang during a call; 'medium' is Krisp's own recommended default.
+      await track.setProcessor(KrispNoiseFilter({ useBVC: true, quality: 'medium' }));
       this.log('Krisp noise + background-voice filter enabled');
     } catch (err) {
       this.logError('failed to enable Krisp noise filter', err);
+      this.options?.onNoiseFilterUnavailable?.();
     }
   }
 

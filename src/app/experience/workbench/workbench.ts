@@ -141,6 +141,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly voiceState = signal<VoiceState>('idle');
   protected readonly voiceMuted = signal(false);
   protected readonly voiceError = signal<string | null>(null);
+  protected readonly voiceNoiseFilterUnavailable = signal(false);
   protected readonly voiceLines = signal<VoiceLine[]>([]);
   /** What actually renders — drops lines that finished with no real content
    *  (e.g. noise the mic picked up, or a turn the agent had nothing to add
@@ -371,6 +372,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     }
 
     this.voiceError.set(null);
+    this.voiceNoiseFilterUnavailable.set(false);
     this.voiceLines.set([]);
     this.voicePartialIndex.clear();
     this.clearVoiceReveal();
@@ -388,6 +390,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
       onTranscript: (entry) => this.applyTranscript(entry),
       onConversationId: (id) => this.conversationId.set(id),
       onError: (message) => this.voiceError.set(message),
+      onNoiseFilterUnavailable: () => this.voiceNoiseFilterUnavailable.set(true),
     });
   }
 
