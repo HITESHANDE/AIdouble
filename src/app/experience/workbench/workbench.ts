@@ -143,6 +143,9 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly voiceError = signal<string | null>(null);
   protected readonly voiceLines = signal<VoiceLine[]>([]);
   private voicePartialIndex: { user: number | null; agent: number | null } = { user: null, agent: null };
+  /** Per-line typewriter state — reveals a line progressively instead of
+   *  popping the whole reply in at once when the worker sends it in one shot. */
+  private readonly voiceReveal = new Map<number, { shown: number; timer?: ReturnType<typeof setInterval> }>();
 
   @ViewChild('vscript') private vscript?: ElementRef<HTMLElement>;
 
@@ -361,6 +364,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.voiceError.set(null);
     this.voiceLines.set([]);
     this.voicePartialIndex = { user: null, agent: null };
+    this.clearVoiceReveal();
 
     if (!this.live()) {
       this.voiceState.set('connecting');
@@ -383,6 +387,8 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.setVoiceState('idle');
     this.voiceMuted.set(false);
     this.voicePartialIndex = { user: null, agent: null };
+    this.clearVoiceReveal();
+    this.voiceLines.set([]);
   }
 
   protected async toggleMute() {
@@ -405,31 +411,77 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.endCall();
     clearTimeout(this.chatPendingTimer);
     clearTimeout(this.voiceWaitingTimer);
+    this.clearVoiceReveal();
   }
 
   private applyTranscript(entry: VoiceTranscript) {
-    const index = this.voicePartialIndex[entry.role];
-    this.voiceLines.update((list) => {
-      if (index != null && list[index]) {
-        const copy = list.slice();
-        copy[index] = { role: entry.role, text: entry.text, pending: !entry.final };
-        return copy;
-      }
-      return [...list, { role: entry.role, text: entry.text, pending: !entry.final }];
-    });
-    if (index == null) {
-      this.voicePartialIndex[entry.role] = this.voiceLines().length - 1;
+    const existingIndex = this.voicePartialIndex[entry.role];
+    let index: number;
+    if (existingIndex != null && this.voiceLines()[existingIndex]) {
+      index = existingIndex;
+    } else {
+      index = this.voiceLines().length;
+      this.voiceLines.update((list) => [...list, { role: entry.role, text: '', pending: !entry.final }]);
+      this.voiceReveal.set(index, { shown: 0 });
+    }
+    if (existingIndex == null) {
+      this.voicePartialIndex[entry.role] = index;
     }
     if (entry.final) {
       this.voicePartialIndex[entry.role] = null;
     }
-    this.scrollTranscript();
+    this.revealLine(index, entry.text, !entry.final);
+  }
+
+  /** Types a line's text into place a chunk at a time. A small incremental
+   *  growth (true live streaming) applies immediately; a big jump (the
+   *  worker sending the whole reply in one message) animates instead, so the
+   *  transcript never just pops the full answer in after a silent wait. */
+  private revealLine(index: number, fullText: string, pending: boolean) {
+    const state = this.voiceReveal.get(index) ?? { shown: 0 };
+    this.voiceReveal.set(index, state);
+    clearInterval(state.timer);
+    state.timer = undefined;
+
+    if (fullText.length - state.shown <= 24) {
+      state.shown = fullText.length;
+      this.setVoiceLineText(index, fullText, pending);
+      this.scrollTranscript();
+      return;
+    }
+
+    const chunk = Math.max(3, Math.ceil(fullText.length / 45));
+    state.timer = setInterval(() => {
+      state.shown = Math.min(fullText.length, state.shown + chunk);
+      this.setVoiceLineText(index, fullText.slice(0, state.shown), pending || state.shown < fullText.length);
+      this.scrollTranscript();
+      if (state.shown >= fullText.length) {
+        clearInterval(state.timer);
+        state.timer = undefined;
+      }
+    }, 28);
+  }
+
+  private setVoiceLineText(index: number, text: string, pending: boolean) {
+    this.voiceLines.update((list) => {
+      if (!list[index]) return list;
+      const copy = list.slice();
+      copy[index] = { ...copy[index], text, pending };
+      return copy;
+    });
+  }
+
+  private clearVoiceReveal() {
+    for (const state of this.voiceReveal.values()) clearInterval(state.timer);
+    this.voiceReveal.clear();
   }
 
   private scrollTranscript() {
-    setTimeout(() => {
-      const el = this.vscript?.nativeElement;
-      if (el) el.scrollTop = el.scrollHeight;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = this.vscript?.nativeElement;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
     });
   }
 
