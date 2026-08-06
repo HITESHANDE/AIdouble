@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {
+  LocalAudioTrack,
+  LocalTrackPublication,
   Participant,
   RemoteAudioTrack,
   RemoteTrack,
@@ -15,6 +17,9 @@ import { LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL } from './livekit-conf
 export type VoiceState = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error';
 
 export interface VoiceTranscript {
+  /** LiveKit's own segment id — lets the caller collapse repeated updates to
+   *  the same utterance into one line instead of appending a new one. */
+  id: string;
   role: 'user' | 'agent';
   text: string;
   final: boolean;
@@ -112,8 +117,13 @@ export class LivekitVoice {
         this.log('no agent in room yet — waiting for the worker to join');
       }
 
-      await room.localParticipant.setMicrophoneEnabled(true);
+      const micPublication = await room.localParticipant.setMicrophoneEnabled(true, {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      });
       this.log('microphone published');
+      await this.applyNoiseFilter(micPublication);
       await this.enableAudioPlayback(room);
       options.onState('listening');
     } catch (err: unknown) {
@@ -183,8 +193,8 @@ export class LivekitVoice {
     room.on(RoomEvent.TranscriptionReceived, (segments: TranscriptionSegment[], participant?: Participant) => {
       const role: 'user' | 'agent' = participant?.isLocal ? 'user' : 'agent';
       for (const segment of segments) {
-        this.log('transcription segment', { role, text: segment.text, final: segment.final });
-        this.options?.onTranscript({ role, text: segment.text, final: segment.final });
+        this.log('transcription segment', { id: segment.id, role, text: segment.text, final: segment.final });
+        this.options?.onTranscript({ id: segment.id, role, text: segment.text, final: segment.final });
       }
     });
 
@@ -209,6 +219,28 @@ export class LivekitVoice {
     room.on(RoomEvent.ConnectionStateChanged, (state) => {
       this.log('connection state', state);
     });
+  }
+
+  /** Runs Krisp's ML noise filter on the mic track, with background-voice
+   *  cancellation on — this is what actually stops a second person talking
+   *  nearby (or a TV, or murmuring) from being picked up as if it were the
+   *  caller, which the browser's own noiseSuppression constraint doesn't do.
+   *  Krisp ships several MB of model weights, so it's loaded on demand here
+   *  rather than bundled into the page everyone downloads up front. */
+  private async applyNoiseFilter(publication: LocalTrackPublication | undefined): Promise<void> {
+    const track = publication?.track;
+    if (!track || !(track instanceof LocalAudioTrack)) return;
+    try {
+      const { isKrispNoiseFilterSupported, KrispNoiseFilter } = await import('@livekit/krisp-noise-filter');
+      if (!isKrispNoiseFilterSupported()) {
+        this.log('Krisp noise filter not supported on this browser/device — using raw mic constraints only');
+        return;
+      }
+      await track.setProcessor(KrispNoiseFilter({ useBVC: true, quality: 'high' }));
+      this.log('Krisp noise + background-voice filter enabled');
+    } catch (err) {
+      this.logError('failed to enable Krisp noise filter', err);
+    }
   }
 
   private attachAgentAudio(track: RemoteAudioTrack): void {
@@ -254,10 +286,9 @@ export class LivekitVoice {
       this.options.onConversationId?.(msg.conversationId);
       return;
     }
-    if (msg.type === 'transcript' && msg.role && typeof msg.text === 'string') {
-      this.options.onTranscript({ role: msg.role, text: msg.text, final: !!msg.final });
-      return;
-    }
+    // Deliberately no 'transcript' handling here — spoken text arrives via
+    // RoomEvent.TranscriptionReceived (see wireRoomEvents). Handling both
+    // would double up every line if the worker ever sends this too.
     if (msg.type === 'error') {
       this.options.onError(msg.text || 'The voice agent hit an error.');
       this.options.onState('error');
