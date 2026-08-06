@@ -148,7 +148,10 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly visibleVoiceLines = computed(() =>
     this.voiceLines().filter((l) => l.pending || l.text.trim().length > 0),
   );
-  private voicePartialIndex: { user: number | null; agent: number | null } = { user: null, agent: null };
+  /** Keyed by LiveKit's own transcription segment id — the reliable way to
+   *  tell "this is an update to the utterance already on screen" apart from
+   *  "this is a new one", regardless of how many segments a role has open. */
+  private voicePartialIndex = new Map<string, number>();
   /** Per-line typewriter state — reveals a line progressively instead of
    *  popping the whole reply in at once when the worker sends it in one shot. */
   private readonly voiceReveal = new Map<number, { shown: number; timer?: ReturnType<typeof setInterval> }>();
@@ -369,7 +372,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
 
     this.voiceError.set(null);
     this.voiceLines.set([]);
-    this.voicePartialIndex = { user: null, agent: null };
+    this.voicePartialIndex.clear();
     this.clearVoiceReveal();
 
     if (!this.live()) {
@@ -392,7 +395,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     await this.voice.stop();
     this.setVoiceState('idle');
     this.voiceMuted.set(false);
-    this.voicePartialIndex = { user: null, agent: null };
+    this.voicePartialIndex.clear();
     this.clearVoiceReveal();
     this.voiceLines.set([]);
   }
@@ -422,7 +425,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   }
 
   private applyTranscript(entry: VoiceTranscript) {
-    const existingIndex = this.voicePartialIndex[entry.role];
+    const existingIndex = this.voicePartialIndex.get(entry.id);
     let index: number;
     if (existingIndex != null && this.voiceLines()[existingIndex]) {
       index = existingIndex;
@@ -430,12 +433,10 @@ export class XzWorkbench implements OnInit, OnDestroy {
       index = this.voiceLines().length;
       this.voiceLines.update((list) => [...list, { role: entry.role, text: '', pending: !entry.final }]);
       this.voiceReveal.set(index, { shown: 0 });
-    }
-    if (existingIndex == null) {
-      this.voicePartialIndex[entry.role] = index;
+      this.voicePartialIndex.set(entry.id, index);
     }
     if (entry.final) {
-      this.voicePartialIndex[entry.role] = null;
+      this.voicePartialIndex.delete(entry.id);
     }
     this.revealLine(index, entry.text, !entry.final);
   }
