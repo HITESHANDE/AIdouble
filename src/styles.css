@@ -165,15 +165,6 @@ app-experience{display:block}
 .xz-person.off .xz-pn{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:1.5px;text-decoration-color:var(--warm)}
 .xz-person.off .xz-pr{color:var(--warm)}
 
-.xz-chanprev{margin-top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
-.xz-cp-h{display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--line);background:var(--paper-2);
-  font-family:var(--fm);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
-.xz-cp-h svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
-.xz-cp-b{padding:13px 15px;font-size:13.5px;color:var(--ink-2);line-height:1.6;text-align:left}
-.xz-cp-b .xz-q{color:var(--ink);font-weight:600;display:block;margin-bottom:7px}
-.xz-cp-b .xz-sub{font-family:var(--fm);font-size:10.5px;color:var(--ink-3);display:block;margin-bottom:8px}
-.xz-cp-b .xz-cited{font-family:var(--fm);font-size:10.5px;color:var(--accent);margin-top:9px;display:block}
-
 .xz-vm-foot{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3);
   display:flex;gap:9px;align-items:flex-start}
 .xz-vm-foot svg{width:15px;height:15px;stroke:var(--accent);fill:none;stroke-width:2;flex-shrink:0;margin-top:3px}
