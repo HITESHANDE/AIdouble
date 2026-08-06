@@ -25,6 +25,10 @@ interface AgentOption {
   prompts: string[];
   /** Business Category filter value for this agent's business drill-down. */
   category: string;
+  /** A separate "<label> - Voice" agent, when one exists — its instructions
+   *  are written for real-time speech rather than chat, so voice calls use
+   *  this instead of `key` while chat keeps using `key`. */
+  voiceKey?: string;
 }
 
 // Only these agents currently have a real Business Category mapping; the
@@ -207,6 +211,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.api
       .listAgents()
       .then((list) => {
+        const idByName = new Map(list.filter((a) => a.name).map((a) => [a.name!.trim(), a.id]));
         const mapped = list
           .filter((a) => a.name && AGENT_CATEGORY[a.name.trim()])
           .map((a): AgentOption => {
@@ -219,6 +224,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
               description,
               category: AGENT_CATEGORY[name],
               prompts: [description ?? GENERIC_PROMPT],
+              voiceKey: idByName.get(`${name} - Voice`),
             };
           });
         if (!mapped.length) return;
@@ -385,7 +391,10 @@ export class XzWorkbench implements OnInit, OnDestroy {
     }
 
     await this.voice.start({
-      agentId: this.agentKey(),
+      // Prefer the dedicated "<label> - Voice" agent when one exists — its
+      // instructions are written for spoken conversation, not chat. Falls
+      // back to the regular agent for categories without a voice variant.
+      agentId: this.agent().voiceKey ?? this.agentKey(),
       conversationId: this.conversationId(),
       onState: (state) => this.setVoiceState(state),
       onTranscript: (entry) => this.applyTranscript(entry),
