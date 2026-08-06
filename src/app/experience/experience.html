@@ -2,9 +2,9 @@
   <app-xz-chrome (regionChange)="onRegionChange($event)" />
 
   <main class="wrap">
-    <app-xz-value-map />
-    <app-xz-marquee />
     <app-xz-workbench />
+    <app-xz-marquee />
+    <app-xz-value-map />
     <app-xz-channels />
     <app-xz-onboarding [region]="region()" (planSelected)="onPlanSelected($event)" />
     <app-xz-roi [region]="region()" [plan]="plan()" />
