@@ -159,13 +159,17 @@
               <p class="xz-voice-err">{{ voiceError() }}</p>
             }
 
-            @if (voiceLines().length) {
+            @if (visibleVoiceLines().length) {
               <div class="xz-vscript" #vscript>
-                @for (line of voiceLines(); track $index) {
+                @for (line of visibleVoiceLines(); track $index) {
                   <div class="xz-vline" [class.u]="line.role === 'user'" [class.a]="line.role === 'agent'">
                     <span class="xz-vwho">{{ line.role === 'user' ? 'You' : agent().label }}</span>
                     @if (line.role === 'agent') {
-                      <div class="xz-vtext" [class.pending]="line.pending" [innerHTML]="renderMarkdown(line.text)"></div>
+                      @if (line.text.trim()) {
+                        <div class="xz-vtext" [class.pending]="line.pending" [innerHTML]="renderMarkdown(line.text)"></div>
+                      } @else {
+                        <div class="xz-vtext"><span class="xz-thinkdots"><i></i><i></i><i></i></span></div>
+                      }
                     } @else {
                       <p class="xz-vtext" [class.pending]="line.pending">{{ line.text }}</p>
                     }

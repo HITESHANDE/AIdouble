@@ -142,6 +142,12 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly voiceMuted = signal(false);
   protected readonly voiceError = signal<string | null>(null);
   protected readonly voiceLines = signal<VoiceLine[]>([]);
+  /** What actually renders — drops lines that finished with no real content
+   *  (e.g. noise the mic picked up, or a turn the agent had nothing to add
+   *  to) instead of leaving an empty bubble in the transcript. */
+  protected readonly visibleVoiceLines = computed(() =>
+    this.voiceLines().filter((l) => l.pending || l.text.trim().length > 0),
+  );
   private voicePartialIndex: { user: number | null; agent: number | null } = { user: null, agent: null };
   /** Per-line typewriter state — reveals a line progressively instead of
    *  popping the whole reply in at once when the worker sends it in one shot. */
