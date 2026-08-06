@@ -498,10 +498,29 @@ export class XzWorkbench implements OnInit, OnDestroy {
       this.vscriptObserved = el;
       this.vscriptObserver = new MutationObserver(() => {
         el.scrollTop = el.scrollHeight;
+        this.keepInPageView(el);
       });
       this.vscriptObserver.observe(el, { childList: true, subtree: true, characterData: true });
     }
     el.scrollTop = el.scrollHeight;
+    this.keepInPageView(el);
+  }
+
+  private lastPageScrollAt = 0;
+
+  /** As the transcript grows it can push its own bottom edge below the fold
+   *  even though the panel is internally scrolled to its latest line — nudge
+   *  the page itself down so the live conversation stays in view. Only acts
+   *  when the edge has actually drifted off-screen, and is throttled so the
+   *  character-by-character reveal doesn't restart the smooth-scroll dozens
+   *  of times a second. */
+  private keepInPageView(el: HTMLElement) {
+    const rect = el.getBoundingClientRect();
+    if (rect.bottom <= window.innerHeight) return;
+    const now = Date.now();
+    if (now - this.lastPageScrollAt < 350) return;
+    this.lastPageScrollAt = now;
+    el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
   protected sendMessage(text?: string) {
