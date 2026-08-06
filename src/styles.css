@@ -256,11 +256,12 @@ app-experience{display:block}
 .xz-voice-err{font-size:12.5px;line-height:1.5;color:var(--tang);max-width:42ch;margin:0}
 .xz-vscript{width:100%;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;text-align:left;
   padding:16px 4px 4px;margin-top:2px;border-top:1px solid var(--chrome-line)}
-.xz-vline{display:flex;flex-direction:column;gap:4px}
+.xz-vline{display:flex;flex-direction:column;gap:5px}
 .xz-vwho{font-family:var(--fm);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,252,245,.45)}
 .xz-vline.u .xz-vwho{color:rgba(156,134,255,.85)}
 .xz-vtext{margin:0;font-size:14.5px;line-height:1.6;color:rgba(255,252,245,.9)}
-.xz-vline.u .xz-vtext{color:rgba(255,252,245,.62)}
+.xz-vline.a .xz-vtext{background:rgba(255,252,245,.055);border:1px solid var(--chrome-line);border-radius:13px;padding:11px 14px}
+.xz-vline.u .xz-vtext{color:rgba(255,252,245,.62);padding:0 2px}
 .xz-vtext :first-child{margin-top:0}
 .xz-vtext :last-child{margin-bottom:0}
 .xz-vtext p{margin:0 0 8px}
@@ -279,8 +280,9 @@ app-experience{display:block}
 .xz-vtext table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 8px;display:block;overflow-x:auto}
 .xz-vtext th,.xz-vtext td{border:1px solid var(--chrome-line);padding:5px 8px;text-align:left}
 .xz-vtext hr{border:0;border-top:1px solid var(--chrome-line);margin:10px 0}
-.xz-vtext img{display:block;max-width:180px;max-height:130px;width:auto;height:auto;object-fit:contain;
-  border:1px solid var(--chrome-line);border-radius:10px;background:#fff;padding:5px;margin:8px 0}
+.xz-vtext img{display:block;max-width:128px;max-height:100px;width:auto;height:auto;object-fit:contain;
+  border:1px solid var(--chrome-line);border-radius:10px;background:#fff;padding:5px;margin:8px 0;
+  box-shadow:0 4px 14px -6px rgba(0,0,0,.5)}
 p.xz-vtext.pending::after,.xz-vtext.pending > :last-child::after{content:'▍';margin-left:2px;
   animation:xzcaret 1s steps(2) infinite;color:var(--mint)}
 @keyframes xzcaret{0%,50%{opacity:1}51%,100%{opacity:0}}
@@ -323,8 +325,9 @@ p.xz-vtext.pending::after,.xz-vtext.pending > :last-child::after{content:'▍';m
 .xz-answer table{border-collapse:collapse;width:100%;margin:0 0 8px;font-size:13.5px}
 .xz-answer th,.xz-answer td{border:1px solid var(--line);padding:6px 9px;text-align:left}
 .xz-answer th{background:var(--paper-2);font-weight:700;color:var(--ink)}
-.xz-answer img{display:block;max-width:200px;max-height:150px;width:auto;height:auto;object-fit:contain;
-  border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:6px;margin:8px 0}
+.xz-answer img{display:block;max-width:140px;max-height:110px;width:auto;height:auto;object-fit:contain;
+  border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:6px;margin:8px 0;
+  box-shadow:0 4px 14px -8px rgba(20,17,16,.35)}
 .xz-thinkdots{display:inline-flex;gap:4px;align-items:center;padding:6px 0}
 .xz-thinkdots i{width:5px;height:5px;border-radius:50%;background:var(--accent);display:block;animation:xzbob 1s ease-in-out infinite}
 .xz-thinkdots i:nth-child(2){animation-delay:.15s}.xz-thinkdots i:nth-child(3){animation-delay:.3s}
