@@ -42,11 +42,18 @@ const AGENT_CATEGORY: Record<string, string> = {
   'Medical Aesthetics': 'Medical Aesthetics',
 };
 
+// Cosmetic-only: shown in the rail/headers instead of the real agent name.
+// Matching against AGENT_CATEGORY and the "<name> - Voice" lookup still use
+// the real name underneath, so this never affects which agent is called.
+const LABEL_OVERRIDE: Record<string, string> = {
+  'Aidouble Insurance': 'Insurance',
+};
+
 // Shown until the real agent list loads (or if it can't — see ngOnInit).
 const FALLBACK_AGENTS: AgentOption[] = [
   {
     key: 'insurance',
-    label: 'Aidouble Insurance',
+    label: 'Insurance',
     line: 'Am I overpaying on my car renewal?',
     description: null,
     category: 'Health Insurance',
@@ -219,7 +226,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
             const description = a.description?.trim() || null;
             return {
               key: a.id,
-              label: name,
+              label: LABEL_OVERRIDE[name] ?? name,
               line: description ?? GENERIC_PROMPT,
               description,
               category: AGENT_CATEGORY[name],
