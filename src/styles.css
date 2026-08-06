@@ -269,6 +269,9 @@ app-experience{display:block}
 .xz-orb.speaking .xz-wave i{animation-duration:.65s}
 .xz-orb.thinking .xz-wave i{animation-duration:1.5s;opacity:.65}
 @keyframes xzwave{0%,100%{height:7px}50%{height:26px}}
+.xz-wave.live i{animation:none;transition:height 90ms linear;height:calc(7px + var(--lv,0) * 19px)}
+.xz-wave.live i:nth-child(1),.xz-wave.live i:nth-child(5){height:calc(7px + var(--lv,0) * 9px)}
+.xz-wave.live i:nth-child(2),.xz-wave.live i:nth-child(4){height:calc(7px + var(--lv,0) * 15px)}
 
 .xz-callbtn{width:100%;max-width:220px}
 .xz-hangup{background:linear-gradient(100deg,#FF7A7A,#E63950);color:#fff;border-color:var(--hard);box-shadow:var(--sh-sm)}

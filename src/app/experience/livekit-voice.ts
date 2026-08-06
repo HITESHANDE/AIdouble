@@ -35,6 +35,7 @@ export interface VoiceSessionOptions {
   /** Fires when the background-voice/noise filter couldn't be enabled — the
    *  call still proceeds on the raw mic, just without that extra filtering. */
   onNoiseFilterUnavailable?: () => void;
+  onInputLevel?: (level: number) => void;
 }
 
 interface AgentDataMessage {
@@ -47,6 +48,8 @@ interface AgentDataMessage {
 }
 
 const LOG_PREFIX = '[voice]';
+const INPUT_LEVEL_INTERVAL_MS = 50;
+const INPUT_LEVEL_GAIN = 6;
 
 @Injectable({ providedIn: 'root' })
 export class LivekitVoice {
@@ -56,6 +59,9 @@ export class LivekitVoice {
   private audioEl: HTMLAudioElement | null = null;
   private options: VoiceSessionOptions | null = null;
   private stopping = false;
+  private levelContext: AudioContext | null = null;
+  private levelFrame: number | null = null;
+  private levelEmittedAt = 0;
 
   get isActive(): boolean {
     return this.room != null;
@@ -127,6 +133,7 @@ export class LivekitVoice {
       });
       this.log('microphone published');
       await this.applyNoiseFilter(micPublication);
+      this.startInputMeter(micPublication);
       await this.enableAudioPlayback(room);
       options.onState('listening');
     } catch (err: unknown) {
@@ -144,6 +151,8 @@ export class LivekitVoice {
     }
     this.stopping = true;
     this.room = null;
+    this.stopInputMeter();
+    this.options?.onInputLevel?.(0);
     if (this.audioEl) {
       this.audioEl.srcObject = null;
       this.audioEl.remove();
@@ -248,6 +257,51 @@ export class LivekitVoice {
       this.logError('failed to enable Krisp noise filter', err);
       this.options?.onNoiseFilterUnavailable?.();
     }
+  }
+
+  private startInputMeter(publication: LocalTrackPublication | undefined): void {
+    const track = publication?.track;
+    if (!track || !(track instanceof LocalAudioTrack)) return;
+    const mediaTrack = track.getProcessor()?.processedTrack ?? track.mediaStreamTrack;
+    if (!mediaTrack) return;
+    try {
+      const context = new AudioContext();
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.5;
+      context.createMediaStreamSource(new MediaStream([mediaTrack])).connect(analyser);
+      if (context.state === 'suspended') void context.resume();
+      this.levelContext = context;
+
+      const samples = new Float32Array(analyser.fftSize);
+      const tick = () => {
+        this.levelFrame = requestAnimationFrame(tick);
+        const now = performance.now();
+        if (now - this.levelEmittedAt < INPUT_LEVEL_INTERVAL_MS) return;
+        this.levelEmittedAt = now;
+        analyser.getFloatTimeDomainData(samples);
+        let sum = 0;
+        for (const sample of samples) sum += sample * sample;
+        const rms = Math.sqrt(sum / samples.length);
+        this.options?.onInputLevel?.(Math.min(1, rms * INPUT_LEVEL_GAIN));
+      };
+      this.levelFrame = requestAnimationFrame(tick);
+      this.log('input level meter running');
+    } catch (err) {
+      this.logError('failed to start the input level meter', err);
+    }
+  }
+
+  private stopInputMeter(): void {
+    if (this.levelFrame != null) {
+      cancelAnimationFrame(this.levelFrame);
+      this.levelFrame = null;
+    }
+    if (this.levelContext) {
+      void this.levelContext.close().catch(() => undefined);
+      this.levelContext = null;
+    }
+    this.levelEmittedAt = 0;
   }
 
   private attachAgentAudio(track: RemoteAudioTrack): void {

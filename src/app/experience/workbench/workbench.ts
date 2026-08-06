@@ -152,6 +152,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   // agent id, so the call goes to LiveKit; otherwise it stays simulated.
   protected readonly voiceState = signal<VoiceState>('idle');
   protected readonly voiceMuted = signal(false);
+  protected readonly voiceInputLevel = signal(0);
   protected readonly voiceError = signal<string | null>(null);
   protected readonly voiceNoiseFilterUnavailable = signal(false);
   protected readonly voiceLines = signal<VoiceLine[]>([]);
@@ -387,6 +388,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
 
     this.voiceError.set(null);
     this.voiceNoiseFilterUnavailable.set(false);
+    this.voiceInputLevel.set(0);
     this.voiceLines.set([]);
     this.voicePartialIndex.clear();
     this.clearVoiceReveal();
@@ -408,6 +410,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
       onConversationId: (id) => this.conversationId.set(id),
       onError: (message) => this.voiceError.set(message),
       onNoiseFilterUnavailable: () => this.voiceNoiseFilterUnavailable.set(true),
+      onInputLevel: (level) => this.voiceInputLevel.set(level),
     });
   }
 
@@ -415,6 +418,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     await this.voice.stop();
     this.setVoiceState('idle');
     this.voiceMuted.set(false);
+    this.voiceInputLevel.set(0);
     this.voicePartialIndex.clear();
     this.clearVoiceReveal();
     this.voiceLines.set([]);
