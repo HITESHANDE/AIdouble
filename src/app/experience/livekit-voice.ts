@@ -12,7 +12,7 @@ import {
 } from 'livekit-client';
 import { LibrechatApi } from './librechat-api';
 import { LIBRECHAT_DEMO_TOKEN, LIBRECHAT_TENANT_ID } from './librechat-config';
-import { LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL } from './livekit-config';
+import { LIVEKIT_AGENT_NAME, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL } from './livekit-config';
 
 export type VoiceState = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error';
 
@@ -293,9 +293,11 @@ export class LivekitVoice {
       this.options.onConversationId?.(msg.conversationId);
       return;
     }
-    // Deliberately no 'transcript' handling here — spoken text arrives via
-    // RoomEvent.TranscriptionReceived (see wireRoomEvents). Handling both
-    // would double up every line if the worker ever sends this too.
+    // Deliberately no 'transcript' handling here. The worker sends every line
+    // on both channels: this one, and RoomEvent.TranscriptionReceived (see
+    // wireRoomEvents) via its TranscriptSynchronizer. Handling both duplicates
+    // every agent line on screen, so the synchronised channel is the only one
+    // read — its text is paced to the audio, this one runs ahead of it.
     if (msg.type === 'error') {
       this.options.onError(msg.text || 'The voice agent hit an error.');
       this.options.onState('error');
@@ -317,6 +319,7 @@ export class LivekitVoice {
 
     const now = Math.floor(Date.now() / 1000);
     const header = { alg: 'HS256', typ: 'JWT' };
+    const agentName = LIVEKIT_AGENT_NAME.trim();
     const claims = {
       iss: LIVEKIT_API_KEY,
       sub: identity,
@@ -331,7 +334,11 @@ export class LivekitVoice {
         canSubscribe: true,
         canPublishData: true,
       },
+      ...(agentName
+        ? { roomConfig: { agents: [{ agentName, metadata: JSON.stringify(metadata) }] } }
+        : {}),
     };
+    if (agentName) this.log('requesting explicit agent dispatch', { agentName });
 
     const signingInput = `${this.base64Url(JSON.stringify(header))}.${this.base64Url(
       JSON.stringify(claims),
