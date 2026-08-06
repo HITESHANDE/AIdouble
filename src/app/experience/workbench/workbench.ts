@@ -39,7 +39,7 @@ const AGENT_CATEGORY: Record<string, string> = {
   Education: 'Education',
   'Health Care': 'Healthcare',
   'Home Services': 'Home Services',
-  'Medical Aesthetics - Voice': 'Medical Aesthetics',
+  'Medical Aesthetics': 'Medical Aesthetics',
 };
 
 // Shown until the real agent list loads (or if it can't — see ngOnInit).
@@ -86,8 +86,8 @@ const FALLBACK_AGENTS: AgentOption[] = [
     prompts: ['Get instant help for all your home service needs.', 'Book a repair visit', 'Any disputes I should know about?'],
   },
   {
-    key: 'medaesthetics-voice',
-    label: 'Medical Aesthetics - Voice',
+    key: 'medaesthetics',
+    label: 'Medical Aesthetics',
     line: 'How can I reduce forehead wrinkles?',
     description: null,
     category: 'Medical Aesthetics',
