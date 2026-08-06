@@ -96,7 +96,7 @@ const FALLBACK_AGENTS: AgentOption[] = [
 ];
 
 const GENERIC_PROMPT = 'Ask me anything.';
-const LANGUAGES = ['English', 'Hindi', 'Telugu', 'Tamil'];
+const LANGUAGES = ['English'];
 
 @Component({
   selector: 'app-xz-workbench',
