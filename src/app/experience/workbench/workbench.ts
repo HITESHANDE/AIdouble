@@ -153,14 +153,25 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly voiceActive = computed(
     () => this.voiceState() !== 'idle' && this.voiceState() !== 'error',
   );
+  /** True once "connecting"/"thinking" has dragged on a bit — reassures the
+   *  caller instead of leaving a bare spinner during a slow worker join or reply. */
+  protected readonly voiceWaitingLong = signal(false);
+  private voiceWaitingTimer?: ReturnType<typeof setTimeout>;
 
   // Chat demo state
   protected readonly chatMessages = signal<ChatMessage[]>([]);
   protected readonly chatPending = signal(false);
+  /** True only until the first token of the reply arrives — gates the
+   *  "thinking" bubble so it doesn't linger alongside the growing answer. */
+  protected readonly chatAwaitingFirstToken = signal(false);
+  /** True once a reply has been waited on for a while — softens a slow
+   *  agent/tool-call round trip with a reassurance line instead of silence. */
+  protected readonly chatPendingLong = signal(false);
   protected readonly composerText = signal('');
   protected readonly suggestedReplies = signal<string[]>([]);
   private readonly conversationId = signal<string | null>(null);
   private readonly lastMessageId = signal<string | null>(null);
+  private chatPendingTimer?: ReturnType<typeof setTimeout>;
 
   // Dummy upload — accepts files for display only, no parsing/backend call.
   protected readonly uploadedFiles = signal<string[]>([]);
@@ -293,6 +304,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.endCall();
     this.chatMessages.set([]);
     this.chatPending.set(false);
+    this.endAwaitingReply();
     this.composerText.set('');
     this.suggestedReplies.set([]);
     this.conversationId.set(null);
@@ -301,6 +313,21 @@ export class XzWorkbench implements OnInit, OnDestroy {
 
   protected renderMarkdown(text: string): string {
     return marked.parse(text, { async: false, breaks: true });
+  }
+
+  /** Starts the "thinking" bubble and, if a reply takes a while, a
+   *  reassurance line — cleared as soon as the first token/error/final arrives. */
+  private beginAwaitingReply() {
+    this.chatAwaitingFirstToken.set(true);
+    this.chatPendingLong.set(false);
+    clearTimeout(this.chatPendingTimer);
+    this.chatPendingTimer = setTimeout(() => this.chatPendingLong.set(true), 5000);
+  }
+
+  private endAwaitingReply() {
+    this.chatAwaitingFirstToken.set(false);
+    this.chatPendingLong.set(false);
+    clearTimeout(this.chatPendingTimer);
   }
 
   protected hubLabel() {
@@ -344,7 +371,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     await this.voice.start({
       agentId: this.agentKey(),
       conversationId: this.conversationId(),
-      onState: (state) => this.voiceState.set(state),
+      onState: (state) => this.setVoiceState(state),
       onTranscript: (entry) => this.applyTranscript(entry),
       onConversationId: (id) => this.conversationId.set(id),
       onError: (message) => this.voiceError.set(message),
@@ -353,7 +380,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
 
   protected async endCall() {
     await this.voice.stop();
-    this.voiceState.set('idle');
+    this.setVoiceState('idle');
     this.voiceMuted.set(false);
     this.voicePartialIndex = { user: null, agent: null };
   }
@@ -363,8 +390,21 @@ export class XzWorkbench implements OnInit, OnDestroy {
     await this.voice.setMuted(this.voiceMuted());
   }
 
+  /** Sets voice state and arms/disarms the "taking a while" reassurance timer
+   *  around the two states that can genuinely stall (worker join, LLM reply). */
+  private setVoiceState(state: VoiceState) {
+    this.voiceState.set(state);
+    clearTimeout(this.voiceWaitingTimer);
+    this.voiceWaitingLong.set(false);
+    if (state === 'connecting' || state === 'thinking') {
+      this.voiceWaitingTimer = setTimeout(() => this.voiceWaitingLong.set(true), 5000);
+    }
+  }
+
   ngOnDestroy() {
     this.endCall();
+    clearTimeout(this.chatPendingTimer);
+    clearTimeout(this.voiceWaitingTimer);
   }
 
   private applyTranscript(entry: VoiceTranscript) {
@@ -400,6 +440,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.composerText.set('');
     this.suggestedReplies.set([]);
     this.chatPending.set(true);
+    this.beginAwaitingReply();
 
     if (this.live()) {
       let started = false;
@@ -415,6 +456,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
             if (evt.textDelta) {
               if (!started) {
                 started = true;
+                this.endAwaitingReply();
                 this.chatMessages.update((list) => [...list, { role: 'agent', text: evt.textDelta! }]);
               } else {
                 this.chatMessages.update((list) => {
@@ -425,9 +467,11 @@ export class XzWorkbench implements OnInit, OnDestroy {
                 });
               }
             } else if (evt.error) {
+              this.endAwaitingReply();
               this.chatMessages.update((list) => [...list, { role: 'agent', text: evt.error! }]);
               this.chatPending.set(false);
             } else if (evt.final) {
+              this.endAwaitingReply();
               this.conversationId.set(evt.final.conversationId || this.conversationId());
               this.lastMessageId.set(evt.final.responseMessageId || this.lastMessageId());
               this.chatPending.set(false);
@@ -437,6 +481,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
             }
           },
           error: () => {
+            this.endAwaitingReply();
             this.chatMessages.update((list) => [
               ...list,
               { role: 'agent', text: 'Could not reach the agent right now. Please try again.' },
@@ -449,6 +494,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
 
     const agentName = this.agent().label;
     setTimeout(() => {
+      this.endAwaitingReply();
       this.chatPending.set(false);
       this.chatMessages.update((list) => [
         ...list,

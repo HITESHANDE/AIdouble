@@ -136,6 +136,9 @@
               }
             </div>
             <span class="xz-statusline">{{ statusLabel() }}</span>
+            @if (voiceWaitingLong() && !voiceError()) {
+              <span class="xz-statusline xz-statuslong">Still working on it — this can take a few seconds.</span>
+            }
             @if (voiceError()) {
               <p class="xz-voice-err">{{ voiceError() }}</p>
             }
@@ -175,7 +178,13 @@
             } @else {
               @for (m of chatMessages(); track $index) {
                 <div class="xz-msg" [class.u]="m.role === 'user'" [class.a]="m.role === 'agent'">
-                  <span class="xz-mav" aria-hidden="true">{{ m.role === 'user' ? 'YOU' : 'AD' }}</span>
+                  <span class="xz-mav" aria-hidden="true">
+                    @if (m.role === 'user') {
+                      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor" stroke="none"/></svg>
+                    }
+                  </span>
                   <div class="xz-mb">
                     @if (m.role === 'agent') {
                       <div class="xz-answer" [innerHTML]="renderMarkdown(m.text)"></div>
@@ -185,10 +194,17 @@
                   </div>
                 </div>
               }
-              @if (chatPending()) {
+              @if (chatAwaitingFirstToken()) {
                 <div class="xz-msg a">
-                  <span class="xz-mav" aria-hidden="true">AD</span>
-                  <div class="xz-mb"><span class="xz-thinkdots"><i></i><i></i><i></i></span></div>
+                  <span class="xz-mav" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor" stroke="none"/></svg>
+                  </span>
+                  <div class="xz-mb">
+                    <span class="xz-thinkdots"><i></i><i></i><i></i></span>
+                    @if (chatPendingLong()) {
+                      <span class="xz-thinklong">Still working on it — this one's taking a little longer.</span>
+                    }
+                  </div>
                 </div>
               }
             }
