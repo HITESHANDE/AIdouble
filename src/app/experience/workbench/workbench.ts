@@ -412,6 +412,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     clearTimeout(this.chatPendingTimer);
     clearTimeout(this.voiceWaitingTimer);
     this.clearVoiceReveal();
+    this.vscriptObserver?.disconnect();
   }
 
   private applyTranscript(entry: VoiceTranscript) {
@@ -476,13 +477,25 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.voiceReveal.clear();
   }
 
+  private vscriptObserver?: MutationObserver;
+  private vscriptObserved?: HTMLElement;
+
+  /** Pins the transcript to its bottom edge. A MutationObserver — rather than
+   *  a timed callback — reacts to every DOM change (each revealed character,
+   *  each new line, each image finishing layout) the instant it happens, so
+   *  it can't fall behind regardless of how fast lines are arriving. */
   private scrollTranscript() {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const el = this.vscript?.nativeElement;
-        if (el) el.scrollTop = el.scrollHeight;
+    const el = this.vscript?.nativeElement;
+    if (!el) return;
+    if (el !== this.vscriptObserved) {
+      this.vscriptObserver?.disconnect();
+      this.vscriptObserved = el;
+      this.vscriptObserver = new MutationObserver(() => {
+        el.scrollTop = el.scrollHeight;
       });
-    });
+      this.vscriptObserver.observe(el, { childList: true, subtree: true, characterData: true });
+    }
+    el.scrollTop = el.scrollHeight;
   }
 
   protected sendMessage(text?: string) {
