@@ -1,10 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import {
+  Participant,
   RemoteAudioTrack,
   RemoteTrack,
   Room,
   RoomEvent,
   Track,
+  TranscriptionSegment,
 } from 'livekit-client';
 import { LibrechatApi } from './librechat-api';
 import { LIBRECHAT_DEMO_TOKEN, LIBRECHAT_TENANT_ID } from './librechat-config';
@@ -172,6 +174,18 @@ export class LivekitVoice {
 
     room.on(RoomEvent.DataReceived, (payload: Uint8Array) => {
       this.handleDataMessage(payload);
+    });
+
+    // LiveKit's native STT/TTS transcription channel — this is how most
+    // agent workers (including the livekit-agents framework) actually
+    // deliver spoken text, separate from the ad-hoc DataReceived messages
+    // above (which this worker uses only for state/conversation-id).
+    room.on(RoomEvent.TranscriptionReceived, (segments: TranscriptionSegment[], participant?: Participant) => {
+      const role: 'user' | 'agent' = participant?.isLocal ? 'user' : 'agent';
+      for (const segment of segments) {
+        this.log('transcription segment', { role, text: segment.text, final: segment.final });
+        this.options?.onTranscript({ role, text: segment.text, final: segment.final });
+      }
     });
 
     room.on(RoomEvent.Disconnected, (reason) => {
