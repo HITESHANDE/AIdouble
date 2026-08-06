@@ -124,13 +124,29 @@
           <div class="xz-callside">
             <span class="xz-agentline">Now speaking with</span>
             <span class="xz-agentname">{{ agent().label }}</span>
-            <button type="button" class="xz-orb" [class.on]="voiceActive()" [class.listening]="calling() || voiceState() === 'listening'" [class.speaking]="voiceState() === 'speaking'" (click)="toggleCall()" [attr.aria-label]="voiceActive() ? 'End call' : 'Start call'">
-              <span class="xz-ic" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2.2 2A17 17 0 0 1 3 6.2 2 2 0 0 1 5 4z"/></svg>
-              </span>
-            </button>
+            <div class="xz-orbwrap">
+              <span class="xz-orbhalo" aria-hidden="true"
+                [class.listening]="calling() || voiceState() === 'listening'"
+                [class.thinking]="voiceState() === 'thinking'"
+                [class.speaking]="voiceState() === 'speaking'"></span>
+              <button type="button" class="xz-orb"
+                [class.on]="voiceActive()"
+                [class.listening]="calling() || voiceState() === 'listening'"
+                [class.thinking]="voiceState() === 'thinking'"
+                [class.speaking]="voiceState() === 'speaking'"
+                (click)="toggleCall()" [attr.aria-label]="voiceActive() ? 'End call' : 'Start call'">
+                <span class="xz-orbring" aria-hidden="true"></span>
+                <span class="xz-ic" aria-hidden="true">
+                  @if (voiceActive()) {
+                    <span class="xz-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                  } @else {
+                    <svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2.2 2A17 17 0 0 1 3 6.2 2 2 0 0 1 5 4z"/></svg>
+                  }
+                </span>
+              </button>
+            </div>
             <div class="xz-callctl">
-              <button type="button" class="xz-btn xz-light xz-callbtn" (click)="toggleCall()">{{ hubLabel() }}</button>
+              <button type="button" class="xz-btn xz-callbtn" [class.xz-light]="!voiceActive()" [class.xz-hangup]="voiceActive()" (click)="toggleCall()">{{ hubLabel() }}</button>
               @if (voiceActive()) {
                 <button type="button" class="xz-btn xz-light sm xz-mutebtn" [class.on]="voiceMuted()" (click)="toggleMute()">{{ voiceMuted() ? 'Unmute' : 'Mute' }}</button>
               }
