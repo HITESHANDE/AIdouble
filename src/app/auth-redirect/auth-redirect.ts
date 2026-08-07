@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthSession } from '../experience/auth-session';
 import { SsoApi } from '../experience/sso-api';
+import { AuthFlow } from '../experience/auth-flow';
 
 @Component({
   selector: 'app-auth-redirect',
@@ -13,6 +14,7 @@ export class AuthRedirect implements OnInit {
   private readonly router = inject(Router);
   private readonly sso = inject(SsoApi);
   private readonly session = inject(AuthSession);
+  private readonly auth = inject(AuthFlow);
 
   protected readonly error = signal('');
 
@@ -29,6 +31,10 @@ export class AuthRedirect implements OnInit {
           this.error.set(response.msg || 'Sign-in could not be completed. Please try again.');
           return;
         }
+        // Reopens the auth modal straight to "About your business" — the
+        // provider redirect is a full page navigation, so AuthFlow's state
+        // from before the redirect is gone; this is what puts it back.
+        this.auth.completeLogin();
         this.router.navigate(['/'], { replaceUrl: true });
       },
       error: (message) => this.error.set(message),
