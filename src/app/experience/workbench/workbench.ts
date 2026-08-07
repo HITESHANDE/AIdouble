@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, input, output, signal } from '@angular/core';
 import { marked } from 'marked';
 import { LibrechatApi, parseConversationStarters } from '../librechat-api';
 import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData } from '../jobtypes-api';
@@ -133,6 +133,26 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
   protected readonly brandSwatches = BRAND_SWATCHES;
   protected readonly brandColor = signal(BRAND_SWATCHES[0]);
+
+  // Category chosen/created in the sign-in flow's "About your business" step
+  // — jumps the rail to the matching industry, when one of the demo agents
+  // actually covers it. A brand-new category typed via "Add new" has no
+  // matching agent, so it's created in GoSure but the rail stays put.
+  readonly presetCategory = input<string | null>(null);
+  private readonly applyPresetCategory = effect(() => {
+    const category = this.presetCategory();
+    if (!category) return;
+    const match = this.agents().find((a) => this.categoryMatches(a.category, category));
+    if (match && match.key !== this.agentKey()) {
+      this.selectAgent(match.key);
+    }
+  });
+
+  private categoryMatches(agentCategory: string, category: string): boolean {
+    const a = agentCategory.trim().toLowerCase();
+    const b = category.trim().toLowerCase();
+    return a === b || a.includes(b) || b.includes(a);
+  }
 
   /** True once a real agent list has loaded — gates whether we call the live
    *  API or fall back to the local simulated demo. */

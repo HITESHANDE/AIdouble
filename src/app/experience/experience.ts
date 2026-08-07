@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { AuthFlow } from './auth-flow';
+import { AuthFlow, BusinessCreated } from './auth-flow';
 import { XzAuthModal } from './auth-modal/auth-modal';
 import { XzChrome } from './chrome/chrome';
 import { XzMarquee } from './marquee/marquee';
@@ -24,6 +24,9 @@ export class Experience {
   // White-label preview name — edited from the workbench's "Preview as"
   // field, shown everywhere the page would otherwise say "AI Double".
   protected readonly brandName = signal('Cynosure');
+  // Category chosen/created in the sign-in flow's "About your business"
+  // step — tells the workbench which industry to select, when one matches.
+  protected readonly presetCategory = signal<string | null>(null);
 
   protected onRegionChange(region: Region) {
     this.region.set(region);
@@ -31,6 +34,11 @@ export class Experience {
 
   protected onBrandNameChange(name: string) {
     this.brandName.set(name);
+  }
+
+  protected onBusinessCreated(created: BusinessCreated) {
+    this.brandName.set(created.name);
+    this.presetCategory.set(created.category);
   }
 
   protected onPlanSelected(plan: Plan) {

@@ -4,6 +4,16 @@ import { AuthSession } from './auth-session';
 
 const BASE_URL = 'https://aidouble.dev.gosure.ai';
 
+// Reference/master-list job type behind Business Category — only exposes
+// its full contents via the job-types-by-id route below, not the name-based
+// one every other call here uses (that route silently under-scopes results
+// for this tenant/token). ID is stable per tenant; found via GET /api/v1/job-types.
+const BUSINESS_CATEGORY_JOB_TYPE_ID = '69c38fc002993404d3d606ba';
+
+interface CategoryRefData {
+  Name?: string;
+}
+
 export interface JobInstance<T = Record<string, unknown>> {
   id: string;
   parentJobInstanceId: string | null;
@@ -60,10 +70,91 @@ export class JobTypesApi {
     return Array.isArray(body?.jobs) ? body.jobs : [];
   }
 
+  // The by-id route returns every instance directly as an array — no
+  // wrapper, no working query params (adding filters/pagination here 500s),
+  // so this always fetches the whole (small) reference list and any
+  // filtering happens client-side.
+  private async fetchByJobTypeId<T>(jobTypeId: string): Promise<JobInstance<T>[]> {
+    const url = `${BASE_URL}/api/v1/job-types/${encodeURIComponent(jobTypeId)}/job-instances`;
+    const res = await fetch(url, {
+      headers: { 'X-Tenant': LIBRECHAT_TENANT_ID, Authorization: `Bearer ${this.session.token()}` },
+    });
+    if (!res.ok) {
+      throw new Error(`GET job-type ${jobTypeId} instances ${res.status}: ${await res.text().catch(() => '')}`);
+    }
+    const body = await res.json();
+    return Array.isArray(body) ? body : [];
+  }
+
   listBusinesses(category: string): Promise<JobInstance<BusinessData>[]> {
     return this.fetchInstances<BusinessData>('Business', [
       { fieldName: 'Business Category', condition: 'contains', value: category },
     ]);
+  }
+
+  // The real master list of valid categories — what "About your business"
+  // offers as existing choices. Business Category validates against this
+  // fixed list server-side (see createBusinessCategory below), so free text
+  // not already here would just be rejected on submit.
+  async listBusinessCategories(): Promise<string[]> {
+    const categories = await this.fetchByJobTypeId<CategoryRefData>(BUSINESS_CATEGORY_JOB_TYPE_ID);
+    const names = new Set<string>();
+    for (const c of categories) {
+      const name = c.data.Name?.trim();
+      if (name) names.add(name);
+    }
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }
+
+  // Creates an instance on the authenticated endpoint (not the public
+  // /api/v1/public/create-instance one) — the public path's org attribution
+  // is unreliable (the same request lands under a different, effectively
+  // random org on repeat calls), while this one always attributes to the
+  // token's own org. Needs a real session token; falls back to
+  // LIBRECHAT_DEMO_TOKEN (via AuthSession.token()) for a signed-out visitor.
+  async createInstance<T = Record<string, unknown>>(
+    jobTypeName: string,
+    data: Record<string, unknown>,
+  ): Promise<JobInstance<T>> {
+    const url = `${BASE_URL}/api/v1/job-types/name/${encodeURIComponent(jobTypeName)}/instances`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Tenant': LIBRECHAT_TENANT_ID,
+        Authorization: `Bearer ${this.session.token()}`,
+      },
+      body: JSON.stringify({ data }),
+    });
+    if (!res.ok) {
+      throw new Error(await this.messageFrom(res));
+    }
+    return res.json();
+  }
+
+  private async messageFrom(res: Response): Promise<string> {
+    const body = await res.json().catch(() => null);
+
+    const validationErrors = body?.validationErrors;
+    if (Array.isArray(validationErrors) && validationErrors.length) {
+      const problems = validationErrors
+        .flatMap((entry: Record<string, string>) => Object.entries(entry))
+        .map(([field, problem]) => `${field}: ${problem}`);
+      if (problems.length) return problems.join(' · ');
+    }
+
+    const messages = body?.messages;
+    if (Array.isArray(messages) && messages.length) return String(messages[0]);
+
+    return 'Something went wrong. Please try again.';
+  }
+
+  // Registers a brand-new category as a valid reference value before a
+  // Business record can use it — Business Category only accepts values that
+  // already exist as Business-BusinessCategory instances, so a genuinely new
+  // name has to be created here first.
+  async createBusinessCategory(name: string): Promise<void> {
+    await this.createInstance('Business-BusinessCategory', { Name: name });
   }
 
   // Services/Products are subjobs of Business — linked by parentJobInstanceId,
