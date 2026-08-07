@@ -188,6 +188,11 @@ app-experience{display:block}
   transition:transform .15s,box-shadow .15s}
 .xz-auth-go:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)}
 .xz-auth-go:disabled{opacity:.5;pointer-events:none;transform:none;box-shadow:none}
+.xz-auth-mail{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.xz-auth-back{background:transparent;border:none;padding:0 0 14px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.xz-auth-back:hover{color:var(--ink)}
+.xz-auth-err{margin:-2px 0 12px;padding:9px 13px;background:var(--warm);color:var(--paper);
+  border:2px solid var(--hard);border-radius:12px;font-size:13px;line-height:1.4}
 .xz-auth-note{display:flex;gap:10px;margin-top:16px;font-size:13px;line-height:1.5;color:var(--ink-3)}
 .xz-auth-note svg{width:15px;height:15px;flex-shrink:0;margin-top:2px;stroke:currentColor;fill:none;
   stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}

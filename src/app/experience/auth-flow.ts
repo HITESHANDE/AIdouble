@@ -4,6 +4,8 @@ import { Idp, IdpsApi } from './idps-api';
 import { SsoApi } from './sso-api';
 import { JobTypesApi } from './jobtypes-api';
 import { InstanceData } from '../signup/signup-api';
+import { AuthSession } from './auth-session';
+import { PasswordLoginApi } from './password-login-api';
 
 export type AuthStep = 'providers' | 'business';
 
@@ -24,8 +26,12 @@ export class AuthFlow {
   private readonly idps = inject(IdpsApi);
   private readonly sso = inject(SsoApi);
   private readonly jobTypes = inject(JobTypesApi);
+  private readonly session = inject(AuthSession);
+  private readonly passwordLogin = inject(PasswordLoginApi);
 
   readonly redirecting = signal('');
+  readonly passwordBusy = signal(false);
+  readonly passwordError = signal('');
 
   readonly open = signal(false);
   readonly loading = signal(false);
@@ -61,7 +67,38 @@ export class AuthFlow {
     window.location.href = this.sso.loginUrl(provider.idp);
   }
 
+  signInWithPassword(username: string, password: string) {
+    if (this.passwordBusy()) return;
+
+    const email = username.trim().toLowerCase();
+    if (!email || !password) {
+      this.passwordError.set('Enter your email and password.');
+      return;
+    }
+
+    this.passwordBusy.set(true);
+    this.passwordError.set('');
+
+    this.passwordLogin.login(email, password, {
+      next: (response) => {
+        this.passwordBusy.set(false);
+
+        if (response.status !== 'Success' || !this.session.save(response)) {
+          this.passwordError.set(response.msg || 'Sign-in failed. Check your email and password.');
+          return;
+        }
+
+        window.location.assign('/');
+      },
+      error: (message) => {
+        this.passwordBusy.set(false);
+        this.passwordError.set(message);
+      },
+    });
+  }
+
   close() {
+    this.passwordError.set('');
     this.open.set(false);
     this.step.set('providers');
     this.submitError.set('');
