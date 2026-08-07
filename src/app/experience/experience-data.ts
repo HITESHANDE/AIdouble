@@ -140,7 +140,7 @@ export const PLANS: Plan[] = [
     overageByRegion: { in: 1, gcc: 0.08, us: 1 },
     hot: true,
     features: [
-      { label: 'Three industry agents', included: true },
+      { label: 'Two industry agents', included: true },
       { label: 'Website widget', included: true },
       { label: 'Hosted subdomain', included: true },
       { label: 'Voice + chat', included: true },
@@ -157,7 +157,7 @@ export const PLANS: Plan[] = [
     minutes: 2400,
     overageByRegion: { in: 0.62, gcc: 0.05, us: 0.62 },
     features: [
-      { label: 'Unlimited agents', included: true },
+      { label: 'Three industry agents', included: true },
       { label: 'Website widget', included: true },
       { label: 'Hosted subdomain', included: true },
       { label: 'Voice + chat', included: true },
