@@ -9,9 +9,9 @@ export interface Region {
 }
 
 export const REGIONS: Region[] = [
-  { id: 'in', flag: '🇮🇳', name: 'India', code: '+91', currencySymbol: '₹', costPerMin: 9, pricePerConvo: 4 },
+  { id: 'in', flag: '🇮🇳', name: 'India', code: '+91', currencySymbol: '$', costPerMin: 0.5, pricePerConvo: 0.045 },
   { id: 'gcc', flag: '🇦🇪', name: 'GCC', code: '+971', currencySymbol: 'AED ', costPerMin: 1.2, pricePerConvo: 0.2 },
-  { id: 'us', flag: '🇺🇸', name: 'USA', code: '+1', currencySymbol: '$', costPerMin: 0.9, pricePerConvo: 0.15 },
+  { id: 'us', flag: '🇺🇸', name: 'USA', code: '+1', currencySymbol: '$', costPerMin: 0.5, pricePerConvo: 0.15 },
 ];
 
 export interface Channel {
@@ -117,10 +117,10 @@ export const PLANS: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    priceByRegion: { in: 199, gcc: 9, us: 3 },
+    priceByRegion: { in: 199, gcc: 10, us: 199 },
     conversations: 250,
     minutes: 300,
-    overageByRegion: { in: 2, gcc: 0.1, us: 0.03 },
+    overageByRegion: { in: 1.99, gcc: 0.1, us: 1.99 },
     features: [
       { label: 'One industry agent', included: true },
       { label: 'Website widget', included: true },
@@ -134,10 +134,10 @@ export const PLANS: Plan[] = [
   {
     id: 'growth',
     name: 'Growth',
-    priceByRegion: { in: 499, gcc: 24, us: 6 },
+    priceByRegion: { in: 299, gcc: 25, us: 299 },
     conversations: 750,
     minutes: 900,
-    overageByRegion: { in: 1.5, gcc: 0.08, us: 0.02 },
+    overageByRegion: { in: 1, gcc: 0.08, us: 1 },
     hot: true,
     features: [
       { label: 'Three industry agents', included: true },
@@ -152,10 +152,10 @@ export const PLANS: Plan[] = [
   {
     id: 'pro',
     name: 'Pro',
-    priceByRegion: { in: 999, gcc: 49, us: 12 },
+    priceByRegion: { in: 499, gcc: 50, us: 499 },
     conversations: 2000,
     minutes: 2400,
-    overageByRegion: { in: 1, gcc: 0.05, us: 0.015 },
+    overageByRegion: { in: 0.62, gcc: 0.05, us: 0.62 },
     features: [
       { label: 'Unlimited agents', included: true },
       { label: 'Website widget', included: true },
@@ -172,7 +172,7 @@ export const PLANS: Plan[] = [
     priceByRegion: { in: null, gcc: null, us: null },
     conversations: 0,
     minutes: 0,
-    overageByRegion: { in: 0.6, gcc: 0.03, us: 0.01 },
+    overageByRegion: { in: 0.37, gcc: 0.03, us: 0.37 },
     features: [
       { label: 'Everything in Pro', included: true },
       { label: 'In-region or on-prem', included: true },
