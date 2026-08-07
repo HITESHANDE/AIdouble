@@ -14,7 +14,8 @@
       <p class="xz-auth-sub">One account per business. Your customers never see it.</p>
 
       @for (p of providers(); track p.idp) {
-        <button type="button" class="xz-auth-p">
+        <button type="button" class="xz-auth-p" [class.xz-busy]="redirecting() === p.idp"
+                [attr.aria-busy]="redirecting() === p.idp" (click)="choose(p)">
           @if (showLogo(p)) {
             <img class="xz-auth-pl" [src]="p.logoSrc" alt="" (error)="onLogoError(p)">
           } @else if (p.brand === 'google') {

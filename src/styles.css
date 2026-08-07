@@ -69,6 +69,7 @@ app-experience{display:block}
 
 /* ---------- chrome (top nav) ---------- */
 .xz-chrome{background:var(--chrome);color:var(--chrome-tx);position:sticky;top:0;z-index:60;border-bottom:2px solid var(--hard)}
+.xz .xz-chrome{z-index:60}
 .xz-chrome-in{display:flex;align-items:center;gap:22px;height:62px}
 .xz-logo{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-weight:700;font-size:19px;color:var(--paper);flex-shrink:0}
 .xz-logo em{font-style:normal;color:var(--lime)}
@@ -87,10 +88,20 @@ app-experience{display:block}
   border-radius:14px;padding:6px;min-width:170px;display:none;box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:70}
 .xz-regionmenu.open{display:block}
 .xz-regionmenu button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;font-size:14px;
-  color:rgba(255,252,245,.8);text-align:left;transition:background .18s}
+  background:transparent;border:none;color:rgba(255,252,245,.8);text-align:left;transition:background .18s}
 .xz-regionmenu button:hover{background:rgba(255,252,245,.08);color:var(--paper)}
 .xz-regionmenu button.on{background:rgba(201,255,61,.16);color:var(--lime)}
 .xz-btn.xz-busy{opacity:.6;pointer-events:none}
+.xz-usersel{position:relative}
+.xz-userbtn{appearance:none;background:transparent;display:inline-flex;align-items:center;gap:8px;
+  border:1.5px solid rgba(255,252,245,.28);border-radius:100px;padding:4px 12px 4px 4px;
+  font-size:13.5px;color:rgba(255,252,245,.85);transition:background .2s}
+.xz-userbtn:hover{background:rgba(255,252,245,.08)}
+.xz-useri{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;background:var(--lime);color:var(--hard);font-weight:700;font-size:12.5px}
+.xz-username{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xz-userbtn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.4}
+@media(max-width:820px){.xz-username{display:none}}
 .xz-autherr{position:absolute;top:calc(100% + 8px);right:0;max-width:280px;background:var(--warm);color:var(--paper);
   border:2px solid var(--hard);border-radius:12px;padding:8px 12px;font-size:12.5px;line-height:1.4;z-index:70}
 .xz-autherr-inline{position:static;max-width:none;text-align:center}
@@ -142,6 +153,16 @@ app-experience{display:block}
   .xz-auth-p{gap:11px;padding:13px 15px;font-size:14px}
   .xz-auth-phint{display:none}
 }
+
+/* ---------- sso redirect landing ---------- */
+.xz-authwait{display:flex;align-items:center;justify-content:center;padding:24px}
+.xz-authwait-card{position:relative;z-index:2;max-width:440px;padding:38px 34px;text-align:center;
+  background:var(--card);border:2px solid var(--hard);border-radius:22px;box-shadow:var(--sh)}
+.xz .xz-authwait-card h1{font-size:26px;font-weight:700;margin-bottom:10px}
+.xz-authwait-card p{color:var(--ink-2);margin-bottom:20px}
+.xz-authwait-dot{width:34px;height:34px;margin:0 auto 18px;border-radius:50%;
+  border:3px solid var(--line-2);border-top-color:var(--accent);animation:xzspin .8s linear infinite}
+@keyframes xzspin{to{transform:rotate(360deg)}}
 
 /* ---------- marquee ---------- */
 .xz-marquee{border-top:2px solid var(--hard);border-bottom:2px solid var(--hard);background:var(--lime);

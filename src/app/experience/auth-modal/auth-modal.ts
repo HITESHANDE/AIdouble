@@ -1,4 +1,5 @@
-import { Component, HostListener, input, output, signal } from '@angular/core';
+import { Component, HostListener, inject, input, output, signal } from '@angular/core';
+import { AuthFlow } from '../auth-flow';
 import { Idp } from '../idps-api';
 
 @Component({
@@ -6,10 +7,18 @@ import { Idp } from '../idps-api';
   templateUrl: './auth-modal.html',
 })
 export class XzAuthModal {
+  private readonly auth = inject(AuthFlow);
+
   readonly providers = input<Idp[]>([]);
   readonly closed = output<void>();
 
+  protected readonly redirecting = this.auth.redirecting;
+
   private readonly logoFailed = signal<string[]>([]);
+
+  protected choose(provider: Idp) {
+    this.auth.signInWith(provider);
+  }
 
   protected showLogo(provider: Idp): boolean {
     return !!provider.logoSrc && !this.logoFailed().includes(provider.idp);

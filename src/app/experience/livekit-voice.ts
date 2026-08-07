@@ -11,7 +11,8 @@ import {
   TranscriptionSegment,
 } from 'livekit-client';
 import { LibrechatApi } from './librechat-api';
-import { LIBRECHAT_DEMO_TOKEN, LIBRECHAT_TENANT_ID } from './librechat-config';
+import { LIBRECHAT_TENANT_ID } from './librechat-config';
+import { AuthSession } from './auth-session';
 import { LIVEKIT_AGENT_NAME, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL } from './livekit-config';
 
 export type VoiceState = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error';
@@ -54,6 +55,7 @@ const INPUT_LEVEL_GAIN = 6;
 @Injectable({ providedIn: 'root' })
 export class LivekitVoice {
   private readonly api = inject(LibrechatApi);
+  private readonly session = inject(AuthSession);
 
   private room: Room | null = null;
   private audioEl: HTMLAudioElement | null = null;
@@ -108,7 +110,7 @@ export class LivekitVoice {
         conversationId: options.conversationId ?? '',
         tenantId: LIBRECHAT_TENANT_ID,
         gosureUserId: identity,
-        gosureToken: LIBRECHAT_DEMO_TOKEN,
+        gosureToken: this.session.token(),
       });
       this.log('token minted', { length: token.length });
 

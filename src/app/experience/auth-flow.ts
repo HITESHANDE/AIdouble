@@ -1,11 +1,15 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ModuleConstantsApi } from './moduleconstants-api';
 import { Idp, IdpsApi } from './idps-api';
+import { SsoApi } from './sso-api';
 
 @Injectable({ providedIn: 'root' })
 export class AuthFlow {
   private readonly moduleConstants = inject(ModuleConstantsApi);
   private readonly idps = inject(IdpsApi);
+  private readonly sso = inject(SsoApi);
+
+  readonly redirecting = signal('');
 
   readonly open = signal(false);
   readonly loading = signal(false);
@@ -27,6 +31,12 @@ export class AuthFlow {
         this.error.set(message);
       },
     });
+  }
+
+  signInWith(provider: Idp) {
+    if (this.redirecting()) return;
+    this.redirecting.set(provider.idp);
+    window.location.href = this.sso.loginUrl(provider.idp);
   }
 
   close() {

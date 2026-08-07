@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, Observer } from 'rxjs';
-import { LIBRECHAT_BASE_URL, LIBRECHAT_DEMO_TOKEN, LIBRECHAT_TENANT_ID } from './librechat-config';
+import { LIBRECHAT_BASE_URL, LIBRECHAT_TENANT_ID } from './librechat-config';
+import { AuthSession } from './auth-session';
 
 const ZERO_UUID = '00000000-0000-0000-0000-000000000000';
 const VISITOR_ID_KEY = 'aidouble_try_visitor_id';
@@ -53,10 +54,11 @@ interface StartJobResponse {
 @Injectable({ providedIn: 'root' })
 export class LibrechatApi {
   private readonly baseUrl = LIBRECHAT_BASE_URL;
+  private readonly session = inject(AuthSession);
 
-  /** Whether a token has been configured — callers should fall back when false. */
+  /** Whether a token is available — callers should fall back when false. */
   isConfigured(): boolean {
-    return LIBRECHAT_DEMO_TOKEN.trim().length > 0;
+    return this.session.token().trim().length > 0;
   }
 
   /** Context-aware follow-up chips shown after an agent reply. Never throws —
@@ -160,10 +162,11 @@ export class LibrechatApi {
   }
 
   private identityHeaders(): Record<string, string> {
+    const token = this.session.token();
     return {
       'X-Tenant-Id': LIBRECHAT_TENANT_ID,
       'X-User-Id': this.userId(),
-      ...(LIBRECHAT_DEMO_TOKEN ? { 'X-Gosure-Token': LIBRECHAT_DEMO_TOKEN } : {}),
+      ...(token ? { 'X-Gosure-Token': token } : {}),
     };
   }
 
@@ -171,7 +174,7 @@ export class LibrechatApi {
    *  JWT payloads aren't encrypted, just base64url). Falls back to a stable
    *  per-browser anonymous id if there's no token or it can't be parsed. */
   userId(): string {
-    const claims = this.decodeJwt(LIBRECHAT_DEMO_TOKEN);
+    const claims = this.decodeJwt(this.session.token());
     const raw = claims?.['userId'] ?? claims?.['sub'];
     return typeof raw === 'string' && raw ? this.toHeaderSafeUserId(raw) : this.visitorId();
   }
