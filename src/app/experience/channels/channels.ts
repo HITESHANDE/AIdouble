@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 import { DEPLOYMENT_CHANNELS } from '../experience-data';
 
 interface WidgetMsg {
@@ -32,6 +32,21 @@ const WIDGET_QUESTIONS: { q: string; a: string; source: string }[] = [
   templateUrl: './channels.html',
 })
 export class XzChannels {
+  readonly brandName = input('');
+  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
+  protected readonly brandInitial = computed(() => this.displayName().slice(0, 1).toUpperCase());
+  protected readonly brandInitials2 = computed(() => this.displayName().slice(0, 2).toUpperCase());
+  protected readonly brandSlug = computed(
+    () => this.displayName().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'yourbrand',
+  );
+
+  /** Swaps the literal "AI Double" out of the static deployment-channel copy
+   *  for the current preview name — used for the one directory-channel entry
+   *  that mentions it by name. */
+  protected withBrand(text: string): string {
+    return text.replace(/AI Double/g, this.displayName());
+  }
+
   protected readonly channels = DEPLOYMENT_CHANNELS;
   protected readonly activeId = signal(DEPLOYMENT_CHANNELS[0].id);
 
@@ -69,10 +84,13 @@ export class XzChannels {
     }, 500);
   }
 
-  protected readonly embedSnippet = '<script src="https://cdn.aidouble.ai/v1/widget.js"\n        data-agent="ai-double-insurance"\n        data-launcher="call,whatsapp,chat"\n        data-position="right" async></script>';
+  protected readonly embedSnippet = computed(
+    () =>
+      `<script src="https://cdn.aidouble.ai/v1/widget.js"\n        data-agent="${this.brandSlug()}-insurance"\n        data-launcher="call,whatsapp,chat"\n        data-position="right" async></script>`,
+  );
 
   protected copySnippet() {
-    navigator.clipboard?.writeText(this.embedSnippet);
+    navigator.clipboard?.writeText(this.embedSnippet());
     this.copyLabel.set('Copied');
     setTimeout(() => this.copyLabel.set('Copy'), 1600);
   }

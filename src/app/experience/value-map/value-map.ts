@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 import { CHANNELS } from '../experience-data';
 
 interface OutcomeCount {
@@ -27,6 +27,9 @@ const TEAM: TeamMember[] = [
   templateUrl: './value-map.html',
 })
 export class XzValueMap {
+  readonly brandName = input('');
+  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
+
   protected readonly channels = CHANNELS;
   protected readonly activeChannel = signal('chat');
   protected readonly running = signal(false);

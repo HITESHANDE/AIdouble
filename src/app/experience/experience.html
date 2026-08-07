@@ -1,11 +1,11 @@
 <div class="xz">
-  <app-xz-chrome (regionChange)="onRegionChange($event)" />
+  <app-xz-chrome [brandName]="brandName()" (regionChange)="onRegionChange($event)" />
 
   <main class="wrap">
-    <app-xz-workbench />
+    <app-xz-workbench [brandName]="brandName()" (brandNameChange)="onBrandNameChange($event)" />
     <app-xz-marquee />
-    <app-xz-value-map />
-    <app-xz-channels />
+    <app-xz-value-map [brandName]="brandName()" />
+    <app-xz-channels [brandName]="brandName()" />
     <app-xz-onboarding [region]="region()" (planSelected)="onPlanSelected($event)" />
     <app-xz-roi [region]="region()" [plan]="plan()" />
     <app-xz-lead [region]="region()" [plan]="plan()" />
@@ -13,7 +13,7 @@
 
   <footer class="xz-footer">
     <div class="wrap xz-fb">
-      <span>© 2026 AI Double · Experience Zone.</span>
+      <span>© 2026 {{ brandName() || 'Cynosure' }} · Experience Zone.</span>
       <div class="xz-lk"><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Security</a></div>
     </div>
   </footer>
