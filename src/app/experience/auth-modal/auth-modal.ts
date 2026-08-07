@@ -75,6 +75,12 @@ export class XzAuthModal {
   readonly businessCreated = output<BusinessCreated>();
 
   protected readonly redirecting = this.auth.redirecting;
+  protected readonly passwordBusy = this.auth.passwordBusy;
+  protected readonly passwordError = this.auth.passwordError;
+
+  protected readonly mode = signal<'choose' | 'email'>('choose');
+  protected readonly email = signal('');
+  protected readonly password = signal('');
 
   private readonly logoFailed = signal<string[]>([]);
 
@@ -133,6 +139,27 @@ export class XzAuthModal {
 
   protected hasConnectedSystem(name: string): boolean {
     return this.connectedSystems().some((s) => s.name === name);
+  }
+
+  protected showEmailForm() {
+    this.auth.passwordError.set('');
+    this.mode.set('email');
+  }
+
+  protected backToProviders() {
+    this.auth.passwordError.set('');
+    this.mode.set('choose');
+  }
+
+  protected onField(target: 'email' | 'password', event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    if (target === 'email') this.email.set(value);
+    else this.password.set(value);
+  }
+
+  protected submitPassword(event: Event) {
+    event.preventDefault();
+    this.auth.signInWithPassword(this.email(), this.password());
   }
 
   protected showLogo(provider: Idp): boolean {

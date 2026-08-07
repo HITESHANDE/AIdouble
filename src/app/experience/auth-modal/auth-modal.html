@@ -12,6 +12,7 @@
       </div>
 
       <div class="xz-auth-b">
+        @if (mode() === 'choose') {
         <p class="xz-auth-sub">One account per business. Your customers never see it.</p>
 
         @for (p of auth.providers(); track p.idp) {
@@ -48,10 +49,44 @@
           </button>
         }
 
+        <button type="button" class="xz-auth-p" (click)="showEmailForm()">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="xz-auth-mail">
+            <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/>
+          </svg>
+          Continue with email
+        </button>
+
         <p class="xz-auth-note">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v6c0 4.4-3.4 7.4-8 8-4.6-.6-8-3.6-8-8V7z"/></svg>
           <span>Choosing a provider signs you in for real and brings you back here to finish setting up your business.</span>
         </p>
+        }
+
+        @if (mode() === 'email') {
+          <button type="button" class="xz-auth-back" (click)="backToProviders()">← Back</button>
+          <p class="xz-auth-sub">Sign in with your email and password.</p>
+
+          <form (submit)="submitPassword($event)">
+            <input type="email" class="xz-auth-in" placeholder="you@company.com" autocomplete="username"
+                   aria-label="Email" [value]="email()" (input)="onField('email', $event)">
+            <input type="password" class="xz-auth-in" placeholder="Password" autocomplete="current-password"
+                   aria-label="Password" [value]="password()" (input)="onField('password', $event)">
+
+            @if (passwordError()) {
+              <p class="xz-auth-err" role="alert">{{ passwordError() }}</p>
+            }
+
+            <button type="submit" class="xz-auth-go" [class.xz-busy]="passwordBusy()"
+                    [attr.aria-busy]="passwordBusy()">
+              {{ passwordBusy() ? 'Signing you in…' : 'Log in' }}
+            </button>
+          </form>
+
+          <p class="xz-auth-note">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v6c0 4.4-3.4 7.4-8 8-4.6-.6-8-3.6-8-8V7z"/></svg>
+            <span>Signs you in to your GoSure account. Your password is encrypted in this page before it is sent.</span>
+          </p>
+        }
       </div>
     } @else {
       <div class="xz-auth-h">
