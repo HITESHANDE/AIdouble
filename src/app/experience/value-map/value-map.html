@@ -2,7 +2,7 @@
   <div class="xz-vm-head">
     <div>
       <h2>One knowledge base. Every channel.</h2>
-      <p>AI Double answers from your documented knowledge. Where a person is genuinely needed, it raises a ticket or routes the call.</p>
+      <p>{{ displayName() }} answers from your documented knowledge. Where a person is genuinely needed, it raises a ticket or routes the call.</p>
     </div>
     <div class="xz-vm-run">
       <span class="xz-cnt">Sample of 100<br><b>{{ ran() ? (counts().resolved + ' resolved · ' + counts().ticketed + ' ticketed · ' + counts().routed + ' routed') : 'not run' }}</b></span>
@@ -35,7 +35,7 @@
 
     <div class="xz-corebox">
       <div class="xz-corenode" aria-hidden="true"><span class="xz-dots">@for (d of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]; track d) { <span></span> }</span></div>
-      <b class="xz-cn">AI Double</b>
+      <b class="xz-cn">{{ displayName() }}</b>
       <span class="xz-cs">Answers from your knowledge. Escalates when it should.</span>
       <div class="xz-kchips">
         <span class="xz-kchip">Policy wordings</span>

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, input, output, signal } from '@angular/core';
 import { marked } from 'marked';
 import { LibrechatApi, parseConversationStarters } from '../librechat-api';
 import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData } from '../jobtypes-api';
@@ -109,6 +109,7 @@ const FALLBACK_AGENTS: AgentOption[] = [
 
 const GENERIC_PROMPT = 'Ask me anything.';
 const LANGUAGES = ['English'];
+const BRAND_SWATCHES = ['#6C46E8', '#00875A', '#FF6B35', '#2563EB', '#DB2777', '#141110'];
 
 @Component({
   selector: 'app-xz-workbench',
@@ -121,6 +122,15 @@ export class XzWorkbench implements OnInit, OnDestroy {
 
   protected readonly agents = signal<AgentOption[]>(FALLBACK_AGENTS);
   protected readonly languages = LANGUAGES;
+
+  // White-label preview — the name is shared page-wide (set by the parent,
+  // edited here via brandNameChange); the accent color stays local, only
+  // re-theming the rail/orb/buttons in this section.
+  readonly brandName = input('');
+  readonly brandNameChange = output<string>();
+  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
+  protected readonly brandSwatches = BRAND_SWATCHES;
+  protected readonly brandColor = signal(BRAND_SWATCHES[0]);
 
   /** True once a real agent list has loaded — gates whether we call the live
    *  API or fall back to the local simulated demo. */

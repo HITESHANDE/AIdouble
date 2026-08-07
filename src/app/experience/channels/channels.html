@@ -2,7 +2,7 @@
   <div class="xz-pane-intro">
     <div>
       <span class="xz-stepnote">Deployment</span>
-      <h2>Where your AI Double lives.</h2>
+      <h2>Where your {{ displayName() }} lives.</h2>
       <p>Four places, same agent and same knowledge. Pick one to see how it appears to your customer.</p>
     </div>
   </div>
@@ -20,7 +20,7 @@
             }
           </svg>
         </span>
-        <span><b>{{ c.name }}</b><span>{{ c.sub }}</span></span>
+        <span><b>{{ withBrand(c.name) }}</b><span>{{ c.sub }}</span></span>
       </button>
     }
   </div>
@@ -30,10 +30,10 @@
       @switch (activeId()) {
         @case ('widget') {
           <div class="xz-frame">
-            <div class="xz-frame-bar"><i></i><i></i><i></i><span class="xz-frame-url">https://www.ai-double.com</span></div>
+            <div class="xz-frame-bar"><i></i><i></i><i></i><span class="xz-frame-url">https://www.{{ brandSlug() }}.com</span></div>
             <div class="xz-stage-site">
               <div class="xz-site-nav">
-                <span class="xz-site-logo">AI Double</span>
+                <span class="xz-site-logo">{{ displayName() }}</span>
                 <span class="xz-site-links"><span>Home</span><span>About</span><span>Services</span><span>Contact</span></span>
               </div>
               <div class="xz-site-hero">
@@ -52,7 +52,7 @@
                 <div class="xz-wpanel">
                   <div class="xz-wp-h">
                     <span class="xz-wo" aria-hidden="true"></span>
-                    <span><b>AI Double</b><span>Answers from your records</span></span>
+                    <span><b>{{ displayName() }}</b><span>Answers from your records</span></span>
                     <button type="button" class="xz-wx" aria-label="Close" (click)="closeWidget()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
                   </div>
                   <div class="xz-wp-b">
@@ -75,18 +75,18 @@
           <div class="xz-code">
             <button type="button" class="xz-copy" (click)="copySnippet()">{{ copyLabel() }}</button>
             <div class="xz-code-scroll"><pre><span class="xz-tagname">&lt;script</span> <span class="xz-attr">src</span>=<span class="xz-str">"https://cdn.aidouble.ai/v1/widget.js"</span>
-        <span class="xz-attr">data-agent</span>=<span class="xz-str">"ai-double-insurance"</span>
+        <span class="xz-attr">data-agent</span>=<span class="xz-str">"{{ brandSlug() }}-insurance"</span>
         <span class="xz-attr">data-launcher</span>=<span class="xz-str">"call,whatsapp,chat"</span>
         <span class="xz-attr">data-position</span>=<span class="xz-str">"right"</span> <span class="xz-attr">async</span><span class="xz-tagname">&gt;&lt;/script&gt;</span></pre></div>
           </div>
         }
         @case ('hosted') {
           <div class="xz-frame">
-            <div class="xz-frame-bar"><i></i><i></i><i></i><span class="xz-frame-url">https://ai-double.aidouble.site</span></div>
+            <div class="xz-frame-bar"><i></i><i></i><i></i><span class="xz-frame-url">https://{{ brandSlug() }}.aidouble.site</span></div>
             <div class="xz-stage-site" style="height:330px;display:flex;align-items:center;justify-content:center">
               <div style="text-align:center;padding:20px">
                 <div class="xz-porb" style="margin:0 auto 16px"></div>
-                <div style="font-family:var(--fd);font-size:22px;color:var(--ink);margin-bottom:6px">AI Double</div>
+                <div style="font-family:var(--fd);font-size:22px;color:var(--ink);margin-bottom:6px">{{ displayName() }}</div>
                 <div style="font-size:13px;color:var(--ink-2);max-width:34ch;margin:0 auto 16px">Ask anything about insurance. Talk, or type — the whole site is the conversation.</div>
                 <div style="display:flex;gap:8px;justify-content:center">
                   <span class="xz-btn xz-primary sm">Talk</span>
@@ -109,23 +109,23 @@
               <div class="xz-phone-top"></div>
               <div class="xz-phone-b">
                 <div class="xz-porb"></div>
-                <b>AI Double</b>
+                <b>{{ displayName() }}</b>
                 <span>Ask about your insurance — anytime, in your language.</span>
                 <span class="xz-pbtn">Talk to us</span>
               </div>
             </div>
             <div class="xz-storegrid">
-              <div class="xz-storecard"><span class="xz-si">A</span><span class="xz-st"><b>App Store</b><span>AI Double · Business</span></span><span class="xz-sb">submitted for review</span></div>
-              <div class="xz-storecard"><span class="xz-si">A</span><span class="xz-st"><b>Google Play</b><span>AI Double · Business</span></span><span class="xz-sb">live</span></div>
-              <div class="xz-storecard"><span class="xz-si">G</span><span class="xz-st"><b>GPT store</b><span>AI Double assistant</span></span><span class="xz-sb">live</span></div>
+              <div class="xz-storecard"><span class="xz-si">{{ brandInitial() }}</span><span class="xz-st"><b>App Store</b><span>{{ displayName() }} · Business</span></span><span class="xz-sb">submitted for review</span></div>
+              <div class="xz-storecard"><span class="xz-si">{{ brandInitial() }}</span><span class="xz-st"><b>Google Play</b><span>{{ displayName() }} · Business</span></span><span class="xz-sb">live</span></div>
+              <div class="xz-storecard"><span class="xz-si">G</span><span class="xz-st"><b>GPT store</b><span>{{ displayName() }} assistant</span></span><span class="xz-sb">live</span></div>
               <div class="xz-storecard"><span class="xz-si">M</span><span class="xz-st"><b>MCP connector</b><span>Reachable from any assistant</span></span><span class="xz-sb">live</span></div>
             </div>
           </div>
         }
         @default {
           <div class="xz-dircard">
-            <div class="xz-dir-h">AI Double · Insurance near Mumbai</div>
-            <div class="xz-dirrow me"><span class="xz-di">AI</span><span class="xz-dt"><b>AI Double</b><span>Verified · replies in seconds · en, हिं, मरा</span></span><span class="xz-dgo">Talk now</span></div>
+            <div class="xz-dir-h">{{ displayName() }} · Insurance near Mumbai</div>
+            <div class="xz-dirrow me"><span class="xz-di">{{ brandInitials2() }}</span><span class="xz-dt"><b>{{ displayName() }}</b><span>Verified · replies in seconds · en, हिं, मरा</span></span><span class="xz-dgo">Talk now</span></div>
             <div class="xz-dirrow"><span class="xz-di">NV</span><span class="xz-dt"><b>Novacare</b><span>Verified · replies in minutes</span></span><span class="xz-dgo">Talk now</span></div>
             <div class="xz-dirrow"><span class="xz-di">SR</span><span class="xz-dt"><b>Sristi Group</b><span>Unverified · form only</span></span><span class="xz-dgo">Enquire</span></div>
           </div>
@@ -138,8 +138,8 @@
 
     <div class="xz-cp-side">
       <span class="xz-planlock">{{ active().plan }}</span>
-      <h3>{{ active().heading }}</h3>
-      <p>{{ active().copy }}</p>
+      <h3>{{ withBrand(active().heading) }}</h3>
+      <p>{{ withBrand(active().copy) }}</p>
       <ul class="xz-cp-list">
         @for (b of active().bullets; track b) {
           <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>{{ b }}</li>

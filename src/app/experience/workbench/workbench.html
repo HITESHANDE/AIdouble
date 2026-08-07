@@ -1,15 +1,26 @@
-<section class="xz-workbench" id="xz-workbench">
+<section class="xz-workbench" id="xz-workbench" [style.--accent]="brandColor()">
   <div class="xz-pane-intro">
     <div>
       <span class="xz-stepnote">Live demo</span>
       <h1>What your customers would experience.</h1>
-      <p>Pick an agent, browse the businesses behind it, then start a live session — powered by AI Double's own conversation and voice engine.</p>
+      <p>Pick an industry, browse the businesses behind it, then start a live session — powered by {{ displayName() }}'s own conversation and voice engine.</p>
     </div>
+  </div>
+
+  <div class="xz-brandbar">
+    <span class="xz-bb-label">Preview as</span>
+    <input class="xz-bb-name" [value]="brandName()" (input)="brandNameChange.emit($any($event.target).value)" maxlength="26" aria-label="Your company name" placeholder="Your company name">
+    <div class="xz-bb-swatches" role="group" aria-label="Brand colour">
+      @for (color of brandSwatches; track color) {
+        <button type="button" class="xz-bb-swatch" [class.on]="color === brandColor()" [style.background]="color" [attr.aria-label]="'Brand colour ' + color" (click)="brandColor.set(color)"></button>
+      }
+    </div>
+    <span class="xz-bb-hint">Your name and colour, applied across the demo.</span>
   </div>
 
   <div class="xz-vgridwrap">
     <aside class="xz-rail">
-      <h4>Agents</h4>
+      <h4>Industries</h4>
       <div class="xz-rail-list">
         @for (opt of agents(); track opt.key) {
           <button type="button" class="xz-rl" [class.on]="opt.key === agentKey()" (click)="selectAgent(opt.key)">

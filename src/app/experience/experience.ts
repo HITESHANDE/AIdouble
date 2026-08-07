@@ -17,9 +17,16 @@ import { PLANS, Plan, REGIONS, Region } from './experience-data';
 export class Experience {
   protected readonly region = signal<Region>(REGIONS[0]);
   protected readonly plan = signal<Plan>(PLANS[1]);
+  // White-label preview name — edited from the workbench's "Preview as"
+  // field, shown everywhere the page would otherwise say "AI Double".
+  protected readonly brandName = signal('Cynosure');
 
   protected onRegionChange(region: Region) {
     this.region.set(region);
+  }
+
+  protected onBrandNameChange(name: string) {
+    this.brandName.set(name);
   }
 
   protected onPlanSelected(plan: Plan) {

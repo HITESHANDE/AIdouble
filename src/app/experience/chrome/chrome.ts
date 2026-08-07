@@ -1,4 +1,4 @@
-import { Component, HostListener, output, signal } from '@angular/core';
+import { Component, HostListener, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { REGIONS, Region } from '../experience-data';
 
@@ -11,6 +11,9 @@ export class XzChrome {
   protected readonly regions = REGIONS;
   protected readonly region = signal<Region>(REGIONS[0]);
   protected readonly menuOpen = signal(false);
+
+  readonly brandName = input('');
+  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
 
   readonly regionChange = output<Region>();
 
