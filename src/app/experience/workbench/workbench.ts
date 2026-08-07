@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import { LibrechatApi, parseConversationStarters } from '../librechat-api';
 import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData } from '../jobtypes-api';
 import { LivekitVoice, VoiceState, VoiceTranscript } from '../livekit-voice';
+import { AuthFlow } from '../auth-flow';
 
 export type XzMode = 'voice' | 'chat';
 
@@ -119,6 +120,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   private readonly api = inject(LibrechatApi);
   private readonly jobTypesApi = inject(JobTypesApi);
   private readonly voice = inject(LivekitVoice);
+  protected readonly auth = inject(AuthFlow);
 
   protected readonly agents = signal<AgentOption[]>(FALLBACK_AGENTS);
   protected readonly languages = LANGUAGES;

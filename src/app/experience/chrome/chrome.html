@@ -18,6 +18,11 @@
         </div>
       </div>
       <a href="#xz-lead" class="xz-btn xz-light sm">Book a demo</a>
+      <a href="#" class="xz-btn xz-accent sm" [class.xz-busy]="auth.busyFor('chrome')"
+         [attr.aria-busy]="auth.busyFor('chrome')" (click)="openAuth($event)">Sign in</a>
+      @if (auth.errorFor('chrome')) {
+        <p class="xz-autherr" role="alert">{{ auth.errorFor('chrome') }}</p>
+      }
     </div>
   </div>
 </header>

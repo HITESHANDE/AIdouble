@@ -112,7 +112,12 @@
 
       <div class="xz-kpanel-foot">
         <input type="file" id="xz-upload-input" multiple hidden accept=".pdf,.doc,.docx,.txt,.csv,.xlsx" (change)="onFilesSelected($event)">
-        <label for="xz-upload-input" class="xz-btn xz-light sm xz-upload-btn">Upload knowledge</label>
+        <button type="button" class="xz-btn xz-light sm xz-upload-btn"
+                [class.xz-busy]="auth.busyFor('workbench')" [attr.aria-busy]="auth.busyFor('workbench')"
+                (click)="auth.start('workbench')">Sign in and upload</button>
+        @if (auth.errorFor('workbench')) {
+          <p class="xz-autherr xz-autherr-inline" role="alert">{{ auth.errorFor('workbench') }}</p>
+        }
         <span class="xz-upload-status">{{ uploadedFiles().length ? uploadedFiles().length + ' document' + (uploadedFiles().length === 1 ? '' : 's') + ' indexed' : 'No documents indexed yet' }}</span>
       </div>
     </aside>

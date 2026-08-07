@@ -11,6 +11,10 @@
     <app-xz-lead [region]="region()" [plan]="plan()" />
   </main>
 
+  @if (auth.open()) {
+    <app-xz-auth-modal [providers]="auth.providers()" (closed)="auth.close()" />
+  }
+
   <footer class="xz-footer">
     <div class="wrap xz-fb">
       <span>© 2026 {{ brandName() || 'Cynosure' }} · Experience Zone.</span>
