@@ -1,0 +1,13 @@
+<div class="xz xz-authwait">
+  <div class="xz-authwait-card">
+    @if (error()) {
+      <h1>Sign-in failed</h1>
+      <p>{{ error() }}</p>
+      <a routerLink="/" class="xz-btn xz-light sm">Back to the site</a>
+    } @else {
+      <div class="xz-authwait-dot" aria-hidden="true"></div>
+      <h1>Signing you in</h1>
+      <p>One moment while we finish setting up your session.</p>
+    }
+  </div>
+</div>

@@ -18,8 +18,22 @@
         </div>
       </div>
       <a href="#xz-lead" class="xz-btn xz-light sm">Book a demo</a>
-      <a href="#" class="xz-btn xz-accent sm" [class.xz-busy]="auth.busyFor('chrome')"
-         [attr.aria-busy]="auth.busyFor('chrome')" (click)="openAuth($event)">Sign in</a>
+      @if (session.signedIn()) {
+        <div class="xz-usersel">
+          <button type="button" class="xz-userbtn" (click)="toggleUserMenu($event)"
+                  [attr.aria-expanded]="userMenuOpen()">
+            <span class="xz-useri" aria-hidden="true">{{ session.initial() }}</span>
+            <span class="xz-username">{{ session.displayName() }}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="xz-regionmenu" [class.open]="userMenuOpen()" role="menu">
+            <button type="button" role="menuitem" (click)="signOut()">Sign out</button>
+          </div>
+        </div>
+      } @else {
+        <a href="#" class="xz-btn xz-accent sm" [class.xz-busy]="auth.busyFor('chrome')"
+           [attr.aria-busy]="auth.busyFor('chrome')" (click)="openAuth($event)">Sign in</a>
+      }
       @if (auth.errorFor('chrome')) {
         <p class="xz-autherr" role="alert">{{ auth.errorFor('chrome') }}</p>
       }

@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
-import { LIBRECHAT_DEMO_TOKEN, LIBRECHAT_TENANT_ID } from './librechat-config';
+import { Injectable, inject } from '@angular/core';
+import { LIBRECHAT_TENANT_ID } from './librechat-config';
+import { AuthSession } from './auth-session';
 
 const BASE_URL = 'https://aidouble.dev.gosure.ai';
 
@@ -40,6 +41,8 @@ interface JobInstancesResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class JobTypesApi {
+  private readonly session = inject(AuthSession);
+
   private async fetchInstances<T>(
     jobType: string,
     filters: { fieldName: string; condition: string; value: string }[],
@@ -48,7 +51,7 @@ export class JobTypesApi {
     const encodedFilters = encodeURIComponent(JSON.stringify(filters));
     const url = `${BASE_URL}/api/v1/job-types/name/${encodeURIComponent(jobType)}/instances?pageNumber=1&pageSize=${pageSize}&filters=${encodedFilters}`;
     const res = await fetch(url, {
-      headers: { 'X-Tenant': LIBRECHAT_TENANT_ID, Authorization: `Bearer ${LIBRECHAT_DEMO_TOKEN}` },
+      headers: { 'X-Tenant': LIBRECHAT_TENANT_ID, Authorization: `Bearer ${this.session.token()}` },
     });
     if (!res.ok) {
       throw new Error(`GET ${jobType} instances ${res.status}: ${await res.text().catch(() => '')}`);
