@@ -19,10 +19,10 @@ export const LIBRECHAT_TENANT_ID = 'aidouble';
 // server-side; swap to that when it exists.
 //
 // Current token: tenant "aidouble", user testing@gosure.ai, role "Members" —
-// expires 2026-08-13 06:13 UTC. It will stop working after that with no
+// expires 2026-08-14 13:24 UTC. It will stop working after that with no
 // warning beyond the console.warn in XzWorkbench.ngOnInit; rotate it before
 // then to keep the live demo working. The X-User-Id sent to the backend is
 // decoded from this token's own `userId` claim (see LibrechatApi.userId()),
 // so the welcome/personalization the agent shows follows whoever's token this is.
 export const LIBRECHAT_DEMO_TOKEN =
-  'eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiJvbmdvLWp3dCIsInN1YiI6InRlc3RpbmdAZ29zdXJlLmFpIiwiYXV0aG9yaXRpZXMiOltdLCJ0ZW5hbnQiOiJhaWRvdWJsZSIsIm9yZ0lkIjoiNjljMjgwMDNiMjYzZGQwM2JjOTJkMjEwIiwicm9sZU5hbWUiOiJNZW1iZXJzIiwidXNlcklkIjoiNmE3NDI1YjgzNTBlMGUyZmNmYmUzMjc3IiwiaWF0IjoxNzg1OTk2ODA2LCJleHAiOjE3ODY2MDE2MDZ9.iuF_mKp3HWlM77E1_D6ae3RahXFBTgNlvBhxxOLQHZniMgSLlAj0itXHGF8G6gnVtt4GsksfJZ3z1vmCrSYy6w';
+  'eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiJvbmdvLWp3dCIsInN1YiI6InRlc3RpbmdAZ29zdXJlLmFpIiwiYXV0aG9yaXRpZXMiOltdLCJ0ZW5hbnQiOiJhaWRvdWJlIiwib3JnSWQiOiI2OWMyODAwM2IyNjNkZDAzYmM5MmQyMTAiLCJyb2xlTmFtZSI6Ik1lbWJlcnMiLCJ1c2VySWQiOiI2YTc0MjViODM1MGUwZTJmY2ZiZTMyNzciLCJpYXQiOjE3ODYxMDkwNjIsImV4cCI6MTc4NjcxMzg2Mn0.ESqP1Ls6EXTDN3bd6PWK3ou_6YYGJtNpQDjzh4O2S4IpvYz8uNyZmR79ZIuZq50z4Uq37yDjwq1uyCl6EIPETw';
