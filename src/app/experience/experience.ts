@@ -1,4 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { AuthFlow } from './auth-flow';
+import { XzAuthModal } from './auth-modal/auth-modal';
 import { XzChrome } from './chrome/chrome';
 import { XzMarquee } from './marquee/marquee';
 import { XzValueMap } from './value-map/value-map';
@@ -11,10 +13,12 @@ import { PLANS, Plan, REGIONS, Region } from './experience-data';
 
 @Component({
   selector: 'app-experience',
-  imports: [XzChrome, XzMarquee, XzValueMap, XzWorkbench, XzChannels, XzOnboarding, XzRoi, XzLead],
+  imports: [XzChrome, XzMarquee, XzValueMap, XzWorkbench, XzChannels, XzOnboarding, XzRoi, XzLead, XzAuthModal],
   templateUrl: './experience.html',
 })
 export class Experience {
+  protected readonly auth = inject(AuthFlow);
+
   protected readonly region = signal<Region>(REGIONS[0]);
   protected readonly plan = signal<Plan>(PLANS[1]);
   // White-label preview name — edited from the workbench's "Preview as"
