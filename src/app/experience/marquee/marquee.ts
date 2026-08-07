@@ -12,6 +12,6 @@ export class XzMarquee {
     'हिंदी · मराठी · English',
     'live in a week',
     'your brand, not ours',
-    '₹199 to start',
+    '$199 to start',
   ];
 }

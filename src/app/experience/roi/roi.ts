@@ -13,7 +13,7 @@ export class XzRoi {
   protected readonly convs = signal(1200);
   protected readonly aht = signal(4);
   protected readonly contain = signal(65);
-  protected readonly cost = signal(9);
+  protected readonly cost = signal(0.5);
 
   constructor() {
     effect(() => this.cost.set(this.region().costPerMin));
