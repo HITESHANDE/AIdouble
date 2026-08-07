@@ -2,9 +2,9 @@
   <app-xz-chrome [brandName]="brandName()" (regionChange)="onRegionChange($event)" />
 
   <main class="wrap">
-    <app-xz-workbench [brandName]="brandName()" (brandNameChange)="onBrandNameChange($event)" />
-    <app-xz-marquee />
     <app-xz-value-map [brandName]="brandName()" />
+    <app-xz-marquee />
+    <app-xz-workbench [brandName]="brandName()" (brandNameChange)="onBrandNameChange($event)" />
     <app-xz-channels [brandName]="brandName()" />
     <app-xz-onboarding [region]="region()" (planSelected)="onPlanSelected($event)" />
     <app-xz-roi [region]="region()" [plan]="plan()" />
