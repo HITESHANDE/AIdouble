@@ -27,6 +27,11 @@ export class Experience {
   // Category chosen/created in the sign-in flow's "About your business"
   // step — tells the workbench which industry to select, when one matches.
   protected readonly presetCategory = signal<string | null>(null);
+  // Set once "About your business" is submitted — from then on the
+  // workbench locks onto this business instead of staying a generic demo:
+  // brand name becomes fixed, the rail narrows to just this industry, and
+  // the upload CTA switches from "sign in" to "upload your knowledge".
+  protected readonly registeredBusiness = signal<BusinessCreated | null>(null);
 
   protected onRegionChange(region: Region) {
     this.region.set(region);
@@ -39,6 +44,7 @@ export class Experience {
   protected onBusinessCreated(created: BusinessCreated) {
     this.brandName.set(created.name);
     this.presetCategory.set(created.category);
+    this.registeredBusiness.set(created);
   }
 
   protected onPlanSelected(plan: Plan) {

@@ -135,6 +135,29 @@
             <div class="xz-auth-field full"><label>LinkedIn Link</label><input formControlName="b_li" type="url" placeholder="https://linkedin.com/company/"></div>
           </div>
 
+          <div class="xz-auth-sec">Connected systems <span class="opt">optional</span></div>
+          <p class="xz-auth-syshint">The other software your business already runs on — shown to your customers as what's "connected" behind the scenes. Tap an example or add your own.</p>
+          <div class="xz-auth-sysex">
+            @for (ex of connectedSystemExamples(); track ex.name) {
+              <button type="button" class="xz-auth-cat" [class.on]="hasConnectedSystem(ex.name)"
+                      [disabled]="hasConnectedSystem(ex.name)" (click)="addConnectedSystem(ex)">
+                {{ ex.name }}
+              </button>
+            }
+          </div>
+          @for (system of connectedSystems(); track $index) {
+            <div class="xz-auth-sysrow">
+              <input type="text" placeholder="System name, e.g. CRM" [value]="system.name"
+                     (input)="updateConnectedSystem($index, 'name', $any($event.target).value)">
+              <input type="text" placeholder="What it's used for" [value]="system.description"
+                     (input)="updateConnectedSystem($index, 'description', $any($event.target).value)">
+              <button type="button" class="xz-auth-sysrm" aria-label="Remove" (click)="removeConnectedSystem($index)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          }
+          <button type="button" class="xz-auth-sysadd" (click)="addConnectedSystem()">+ Add a system</button>
+
           @if (auth.submitError()) {
             <p class="xz-autherr xz-autherr-inline" role="alert">{{ auth.submitError() }}</p>
           }

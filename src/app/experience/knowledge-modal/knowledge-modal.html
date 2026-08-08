@@ -1,0 +1,103 @@
+<div class="xz-kmbd" (click)="close()">
+  <div class="xz-km" role="dialog" aria-modal="true" aria-labelledby="xz-km-title" (click)="$event.stopPropagation()">
+    <div class="xz-km-h">
+      <div>
+        <span class="xz-km-eyebrow">Knowledge base @if (category()) { &middot; {{ category() }} }</span>
+        <h2 id="xz-km-title">{{ businessName() }}</h2>
+      </div>
+      <div class="xz-km-stats">
+        <span class="xz-km-stat">Docs {{ docsCount() }}/{{ maxDocs }}</span>
+        <span class="xz-km-stat">Msgs 0/40</span>
+        <button type="button" class="xz-km-x" aria-label="Close" (click)="close()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="xz-km-body">
+      <div class="xz-km-left">
+        <span class="xz-km-sub">What to upload</span>
+        @for (t of types; track t.key) {
+          <div class="xz-km-type">
+            <span class="xz-km-ti" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                @switch (t.key) {
+                  @case ('Services') { <path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/> }
+                  @case ('Products') { <rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/> }
+                  @case ('Providers') { <circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/> }
+                }
+              </svg>
+            </span>
+            <span class="xz-km-tt"><b>{{ t.key }}</b><span>{{ t.hint }}</span></span>
+            <button type="button" class="xz-km-add" [disabled]="atLimit()" (click)="addFilesFor(t.key)">Add files</button>
+          </div>
+        }
+
+        @if (docs().length) {
+          <span class="xz-km-sub" style="margin-top:18px">Added</span>
+          <div class="xz-km-doclist">
+            @for (doc of docs(); track $index) {
+              <div class="xz-km-doc">
+                <span class="xz-km-doctype">{{ doc.type }}</span>
+                <span class="xz-km-docname">{{ doc.name }}</span>
+                <button type="button" class="xz-km-docrm" aria-label="Remove" (click)="removeDoc($index)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="xz-km-right">
+        <span class="xz-km-sub">Add sources</span>
+        <div class="xz-km-tabs" role="tablist">
+          <button type="button" role="tab" [class.on]="sourceTab() === 'upload'" (click)="sourceTab.set('upload')">Upload</button>
+          <button type="button" role="tab" [class.on]="sourceTab() === 'url'" (click)="sourceTab.set('url')">Web URL</button>
+          <button type="button" role="tab" [class.on]="sourceTab() === 'text'" (click)="sourceTab.set('text')">Paste text</button>
+        </div>
+
+        <input #fileInput type="file" multiple hidden accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.json,.html" (change)="onFilesSelected($event)">
+
+        @if (sourceTab() === 'upload') {
+          <div class="xz-km-drop" [class.drag]="dragging()" [class.disabled]="atLimit()"
+               tabindex="0" role="button" aria-label="Upload files"
+               (click)="addFilesFor('Services')" (keydown.enter)="addFilesFor('Services')"
+               (dragover)="dragOver($event)" (dragenter)="dragOver($event)" (dragleave)="dragLeave($event)" (drop)="drop($event)">
+            <span class="xz-km-dropicon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><path d="M12 3v13"/></svg>
+            </span>
+            @if (atLimit()) {
+              <p><b>{{ maxDocs }} of {{ maxDocs }} documents added</b></p>
+              <span class="xz-km-dropnote">Remove one to add another.</span>
+            } @else {
+              <p>Drag &amp; drop, or <b>browse</b></p>
+              <span class="xz-km-dropnote">pdf · docx · txt · md · csv · xlsx · json · html · max {{ maxDocs }} files, 2 MB each</span>
+            }
+          </div>
+        } @else if (sourceTab() === 'url') {
+          <div class="xz-km-drop xz-km-drop-static">
+            <input type="url" class="xz-km-urlin" placeholder="https://your-site.com/faq" aria-label="Source URL">
+            <span class="xz-km-dropnote">Pulls the page text — no login-gated pages.</span>
+          </div>
+        } @else {
+          <div class="xz-km-drop xz-km-drop-static">
+            <textarea class="xz-km-textin" placeholder="Paste policy wording, an FAQ, a price list…" aria-label="Source text"></textarea>
+          </div>
+        }
+
+        <button type="button" class="xz-km-sample" [disabled]="atLimit()" (click)="loadSample()">Load sample data</button>
+
+        <p class="xz-km-privacy">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Tracked here for the demo — real indexing turns on once your knowledge base is fully wired up.</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="xz-km-foot">
+      <span class="xz-km-footcount">{{ docsCount() ? docsCount() + ' document' + (docsCount() === 1 ? '' : 's') + ' added' : 'No documents indexed yet' }}</span>
+      <button type="button" class="xz-btn xz-accent sm" (click)="close()">Done</button>
+    </div>
+  </div>
+</div>

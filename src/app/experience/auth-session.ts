@@ -1,5 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { LIBRECHAT_DEMO_TOKEN } from './librechat-config';
+import { AdminAuthApi } from './admin-auth-api';
 
 const TOKEN_KEY = 'aidouble_token';
 const NAME_KEY = 'aidouble_user_name';
@@ -15,12 +16,28 @@ export interface SessionLoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthSession {
+  private readonly adminAuth = inject(AdminAuthApi);
+
   private readonly stored = signal(this.read(TOKEN_KEY));
+  // Fetched once at app startup (see loadAdminToken, called from an app
+  // initializer) so an unsigned-in visitor still sees every business, not
+  // just whatever a narrower-role static token happens to have visibility
+  // into. A real sign-in always takes priority over it.
+  private readonly adminToken = signal('');
 
   readonly userName = signal(this.read(NAME_KEY));
   readonly signedIn = computed(() => this.stored().length > 0);
 
-  readonly token = computed(() => this.stored() || LIBRECHAT_DEMO_TOKEN);
+  readonly token = computed(() => this.stored() || this.adminToken() || LIBRECHAT_DEMO_TOKEN);
+
+  async loadAdminToken(): Promise<void> {
+    try {
+      const token = await this.adminAuth.login();
+      if (token) this.adminToken.set(token);
+    } catch (err) {
+      console.warn('[auth-session] admin token fetch failed, falling back to the static demo token:', err);
+    }
+  }
 
   readonly displayName = computed(() => {
     const name = this.userName().trim();
