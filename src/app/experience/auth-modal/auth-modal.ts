@@ -1,6 +1,6 @@
-import { Component, ElementRef, HostListener, inject, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, inject, output, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { AuthFlow, BusinessCreated } from '../auth-flow';
+import { AuthFlow, BusinessCreated, ConnectedSystem } from '../auth-flow';
 import { InstanceData } from '../../signup/signup-api';
 import { Idp } from '../idps-api';
 
@@ -13,6 +13,48 @@ const AVAILABILITY_DAYS: Record<string, string[]> = {
   'Weekdays only': WEEKDAYS,
   Custom: ALL_DAYS,
 };
+
+// What "a connected system" means differs by industry, so the examples
+// offered here are the ones a business in that category would actually
+// recognise — clicking one adds it pre-filled rather than starting blank.
+const CONNECTED_SYSTEM_EXAMPLES: Record<string, ConnectedSystem[]> = {
+  Insurance: [
+    { name: 'Policy admin system', description: 'Where policies are issued, endorsed and renewed.' },
+    { name: 'CRM', description: 'Customer records and contact history.' },
+    { name: 'Claims workflow', description: 'Claim status, documents and payout tracking.' },
+  ],
+  'Health Insurance': [
+    { name: 'Policy admin system', description: 'Where policies are issued, endorsed and renewed.' },
+    { name: 'CRM', description: 'Customer records and contact history.' },
+    { name: 'Claims workflow', description: 'Claim status, documents and payout tracking.' },
+  ],
+  Healthcare: [
+    { name: 'HIS / EMR', description: 'Patient records, visit history and clinical notes.' },
+    { name: 'Appointment system', description: 'Booking, scheduling and reminders.' },
+    { name: 'Insurer network feed', description: 'Cashless eligibility and empanelment status.' },
+  ],
+  'Medical Aesthetics': [
+    { name: 'Practice management system', description: 'Patient records and treatment history.' },
+    { name: 'Appointment system', description: 'Booking, scheduling and reminders.' },
+    { name: 'CRM', description: 'Customer records and contact history.' },
+  ],
+  Education: [
+    { name: 'Student information system', description: 'Enrolment, attendance and academic records.' },
+    { name: 'Admissions CRM', description: 'Applicant pipeline and follow-ups.' },
+    { name: 'Fee & billing system', description: 'Fee schedules, dues and receipts.' },
+  ],
+  'Home Services': [
+    { name: 'Billing system', description: 'Rates, invoices and payment status.' },
+    { name: 'Ticketing', description: 'Service requests, complaints and SLAs.' },
+    { name: 'Field service', description: 'Technician scheduling and job status.' },
+  ],
+};
+
+const DEFAULT_CONNECTED_SYSTEM_EXAMPLES: ConnectedSystem[] = [
+  { name: 'CRM', description: 'Customer records and contact history.' },
+  { name: 'Billing system', description: 'Invoices, payments and dues.' },
+  { name: 'Support ticketing', description: 'Requests, complaints and their status.' },
+];
 
 const filledName = (control: AbstractControl) =>
   String(control.value ?? '').trim().length > 1 ? null : { filledName: true };
@@ -66,6 +108,33 @@ export class XzAuthModal {
     b_li: new FormControl(''),
   });
 
+  // Not part of the Business form group — it isn't a real Business field
+  // (see AuthFlow.submitBusiness), just collected here for the live demo's
+  // own "Connected Systems" display.
+  protected readonly connectedSystems = signal<ConnectedSystem[]>([]);
+
+  protected readonly connectedSystemExamples = computed(
+    () => CONNECTED_SYSTEM_EXAMPLES[this.business.value.b_cat ?? ''] ?? DEFAULT_CONNECTED_SYSTEM_EXAMPLES,
+  );
+
+  protected addConnectedSystem(system?: ConnectedSystem) {
+    this.connectedSystems.update((list) => [...list, system ?? { name: '', description: '' }]);
+  }
+
+  protected removeConnectedSystem(index: number) {
+    this.connectedSystems.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  protected updateConnectedSystem(index: number, field: 'name' | 'description', value: string) {
+    this.connectedSystems.update((list) =>
+      list.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
+    );
+  }
+
+  protected hasConnectedSystem(name: string): boolean {
+    return this.connectedSystems().some((s) => s.name === name);
+  }
+
   protected showLogo(provider: Idp): boolean {
     return !!provider.logoSrc && !this.logoFailed().includes(provider.idp);
   }
@@ -97,7 +166,8 @@ export class XzAuthModal {
       return;
     }
 
-    this.auth.submitBusiness(this.businessData(), {
+    const systems = this.connectedSystems().filter((s) => s.name.trim());
+    this.auth.submitBusiness(this.businessData(), systems, {
       next: (created) => {
         this.businessCreated.emit(created);
         this.close();
@@ -112,6 +182,7 @@ export class XzAuthModal {
     this.closed.emit();
     this.submitted.set(false);
     this.addingCategory.set(false);
+    this.connectedSystems.set([]);
     this.business.reset({ b_from: '09:00', b_to: '18:00' });
   }
 

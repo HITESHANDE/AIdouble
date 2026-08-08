@@ -4,7 +4,7 @@
   <main class="wrap">
     <app-xz-value-map [brandName]="brandName()" />
     <app-xz-marquee />
-    <app-xz-workbench [brandName]="brandName()" [presetCategory]="presetCategory()" (brandNameChange)="onBrandNameChange($event)" />
+    <app-xz-workbench [brandName]="brandName()" [presetCategory]="presetCategory()" [registeredBusiness]="registeredBusiness()" (brandNameChange)="onBrandNameChange($event)" />
     <app-xz-channels [brandName]="brandName()" />
     <app-xz-onboarding [region]="region()" (planSelected)="onPlanSelected($event)" />
     <app-xz-roi [region]="region()" [plan]="plan()" />

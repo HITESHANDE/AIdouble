@@ -7,9 +7,15 @@ import { InstanceData } from '../signup/signup-api';
 
 export type AuthStep = 'providers' | 'business';
 
+export interface ConnectedSystem {
+  name: string;
+  description: string;
+}
+
 export interface BusinessCreated {
   name: string;
   category: string;
+  connectedSystems: ConnectedSystem[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -86,6 +92,7 @@ export class AuthFlow {
 
   async submitBusiness(
     data: InstanceData,
+    connectedSystems: ConnectedSystem[],
     handlers: { next: (created: BusinessCreated) => void; error: (message: string) => void },
   ) {
     if (this.submitting()) return;
@@ -109,9 +116,12 @@ export class AuthFlow {
     }
 
     try {
+      // Connected Systems isn't a field on the real Business job type, so it
+      // rides along only for the live demo's own display (Industries rail's
+      // "Connected Systems" chips) — never sent to GoSure.
       await this.jobTypes.createInstance('Business', data);
       this.submitting.set(false);
-      handlers.next({ name: String(data['Business Name'] ?? ''), category });
+      handlers.next({ name: String(data['Business Name'] ?? ''), category, connectedSystems });
     } catch (err) {
       this.submitting.set(false);
       const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';

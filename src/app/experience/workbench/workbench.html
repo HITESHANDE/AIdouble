@@ -9,20 +9,20 @@
 
   <div class="xz-brandbar">
     <span class="xz-bb-label">Preview as</span>
-    <input class="xz-bb-name" [value]="brandName()" (input)="brandNameChange.emit($any($event.target).value)" maxlength="26" aria-label="Your company name" placeholder="Your company name">
+    <input class="xz-bb-name" [value]="brandName()" [disabled]="locked()" (input)="brandNameChange.emit($any($event.target).value)" maxlength="26" aria-label="Your company name" placeholder="Your company name">
     <div class="xz-bb-swatches" role="group" aria-label="Brand colour">
       @for (color of brandSwatches; track color) {
         <button type="button" class="xz-bb-swatch" [class.on]="color === brandColor()" [style.background]="color" [attr.aria-label]="'Brand colour ' + color" (click)="brandColor.set(color)"></button>
       }
     </div>
-    <span class="xz-bb-hint">Your name and colour, applied across the demo.</span>
+    <span class="xz-bb-hint">{{ locked() ? "This is your business now — signed in as " + displayName() + "." : 'Your name and colour, applied across the demo.' }}</span>
   </div>
 
   <div class="xz-vgridwrap">
     <aside class="xz-rail">
-      <h4>Industries</h4>
+      <h4>{{ locked() ? 'Your industry' : 'Industries' }}</h4>
       <div class="xz-rail-list">
-        @for (opt of agents(); track opt.key) {
+        @for (opt of visibleAgents(); track opt.key) {
           <button type="button" class="xz-rl" [class.on]="opt.key === agentKey()" (click)="selectAgent(opt.key)">
             <span class="xz-ri" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor" stroke="none"/></svg>
@@ -31,6 +31,16 @@
           </button>
         }
       </div>
+      @if (locked() && registeredBusiness()!.connectedSystems.length) {
+        <div class="xz-rail-foot">
+          <h4>Connected systems</h4>
+          <div class="xz-connsys">
+            @for (sys of registeredBusiness()!.connectedSystems; track sys.name) {
+              <span class="xz-connchip" [title]="sys.description">{{ sys.name }}</span>
+            }
+          </div>
+        </div>
+      }
       <div class="xz-rail-foot">
         <h4>Language</h4>
         <div class="xz-langrow">
@@ -111,16 +121,23 @@
       }
 
       <div class="xz-kpanel-foot">
-        <input type="file" id="xz-upload-input" multiple hidden accept=".pdf,.doc,.docx,.txt,.csv,.xlsx" (change)="onFilesSelected($event)">
-        <button type="button" class="xz-btn xz-light sm xz-upload-btn"
-                [class.xz-busy]="auth.busyFor('workbench')" [attr.aria-busy]="auth.busyFor('workbench')"
-                (click)="auth.start('workbench')">Sign in and upload</button>
-        @if (auth.errorFor('workbench')) {
-          <p class="xz-autherr xz-autherr-inline" role="alert">{{ auth.errorFor('workbench') }}</p>
+        @if (locked()) {
+          <button type="button" class="xz-btn xz-light sm xz-upload-btn" (click)="openKnowledge()">Upload your knowledge</button>
+        } @else {
+          <button type="button" class="xz-btn xz-light sm xz-upload-btn"
+                  [class.xz-busy]="auth.busyFor('workbench')" [attr.aria-busy]="auth.busyFor('workbench')"
+                  (click)="auth.start('workbench')">Sign in and upload</button>
+          @if (auth.errorFor('workbench')) {
+            <p class="xz-autherr xz-autherr-inline" role="alert">{{ auth.errorFor('workbench') }}</p>
+          }
         }
         <span class="xz-upload-status">{{ uploadedFiles().length ? uploadedFiles().length + ' document' + (uploadedFiles().length === 1 ? '' : 's') + ' indexed' : 'No documents indexed yet' }}</span>
       </div>
     </aside>
+
+    @if (knowledgeOpen()) {
+      <app-xz-knowledge-modal [businessName]="displayName()" [category]="agent().category" (closed)="closeKnowledge()" />
+    }
 
     <div class="xz-agentcol">
       <div class="xz-modebar">

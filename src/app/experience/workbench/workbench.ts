@@ -3,7 +3,8 @@ import { marked } from 'marked';
 import { LibrechatApi, parseConversationStarters } from '../librechat-api';
 import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData } from '../jobtypes-api';
 import { LivekitVoice, VoiceState, VoiceTranscript } from '../livekit-voice';
-import { AuthFlow } from '../auth-flow';
+import { AuthFlow, BusinessCreated } from '../auth-flow';
+import { XzKnowledgeModal } from '../knowledge-modal/knowledge-modal';
 
 export type XzMode = 'voice' | 'chat';
 
@@ -114,6 +115,7 @@ const BRAND_SWATCHES = ['#6C46E8', '#00875A', '#FF6B35', '#2563EB', '#DB2777', '
 
 @Component({
   selector: 'app-xz-workbench',
+  imports: [XzKnowledgeModal],
   templateUrl: './workbench.html',
 })
 export class XzWorkbench implements OnInit, OnDestroy {
@@ -152,6 +154,29 @@ export class XzWorkbench implements OnInit, OnDestroy {
     const a = agentCategory.trim().toLowerCase();
     const b = category.trim().toLowerCase();
     return a === b || a.includes(b) || b.includes(a);
+  }
+
+  // Set once "About your business" is submitted — from then on this is no
+  // longer a generic multi-industry demo, it's this one business's page.
+  readonly registeredBusiness = input<BusinessCreated | null>(null);
+  protected readonly locked = computed(() => !!this.registeredBusiness());
+  // Narrows the rail to the one matching industry. If the registered
+  // category is brand new (via "Add new"), there's no demo agent behind it
+  // yet, so this falls back to showing every agent rather than an empty rail.
+  protected readonly visibleAgents = computed(() => {
+    if (!this.locked()) return this.agents();
+    const matched = this.agents().filter((a) => a.key === this.agentKey());
+    return matched.length ? matched : this.agents();
+  });
+
+  protected readonly knowledgeOpen = signal(false);
+
+  protected openKnowledge() {
+    this.knowledgeOpen.set(true);
+  }
+
+  protected closeKnowledge() {
+    this.knowledgeOpen.set(false);
   }
 
   /** True once a real agent list has loaded — gates whether we call the live
