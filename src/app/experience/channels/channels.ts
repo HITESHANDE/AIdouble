@@ -33,7 +33,7 @@ const WIDGET_QUESTIONS: { q: string; a: string; source: string }[] = [
 })
 export class XzChannels {
   readonly brandName = input('');
-  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
+  protected readonly displayName = computed(() => this.brandName().trim() || 'AI Double');
   protected readonly brandInitial = computed(() => this.displayName().slice(0, 1).toUpperCase());
   protected readonly brandInitials2 = computed(() => this.displayName().slice(0, 2).toUpperCase());
   protected readonly brandSlug = computed(
