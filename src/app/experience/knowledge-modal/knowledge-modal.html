@@ -14,6 +14,71 @@
       </div>
     </div>
 
+    <div class="xz-km-modes" role="tablist">
+      <button type="button" role="tab" [class.on]="mode() === 'docs'" (click)="setMode('docs')">Documents</button>
+      <button type="button" role="tab" [class.on]="mode() === 'business'" (click)="setMode('business')">Add a business</button>
+    </div>
+
+    @if (mode() === 'business') {
+      <div class="xz-km-bizbody">
+        <span class="xz-km-sub">New business @if (category()) { &middot; listed under {{ category() }} }</span>
+
+        <div class="xz-km-bizhead">
+          <input class="xz-km-in" [value]="bizName()" (input)="bizName.set($any($event.target).value)"
+                 maxlength="60" placeholder="Business name" aria-label="Business name">
+          <input class="xz-km-in" [value]="bizDescription()" (input)="bizDescription.set($any($event.target).value)"
+                 maxlength="120" placeholder="Short description (optional)" aria-label="Short description">
+        </div>
+
+        <div class="xz-km-cat">
+          <div class="xz-km-catcol">
+            <span class="xz-km-sub">Services</span>
+            @for (row of services(); track $index) {
+              <div class="xz-km-row">
+                <input class="xz-km-in" [value]="row.name" (input)="updateRow('services', $index, 'name', $event)"
+                       maxlength="60" placeholder="Service name" aria-label="Service name">
+                <input class="xz-km-in" [value]="row.description" (input)="updateRow('services', $index, 'description', $event)"
+                       maxlength="140" placeholder="What it is" aria-label="Service description">
+                <button type="button" class="xz-km-rowrm" aria-label="Remove service" (click)="removeRow('services', $index)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            }
+            <button type="button" class="xz-km-rowadd" (click)="addRow('services')">+ Add service</button>
+          </div>
+
+          <div class="xz-km-catcol">
+            <span class="xz-km-sub">Products</span>
+            @for (row of products(); track $index) {
+              <div class="xz-km-row">
+                <input class="xz-km-in" [value]="row.name" (input)="updateRow('products', $index, 'name', $event)"
+                       maxlength="60" placeholder="Product name" aria-label="Product name">
+                <input class="xz-km-in xz-km-in-price" [value]="row.price" (input)="updateRow('products', $index, 'price', $event)"
+                       maxlength="16" placeholder="Price" aria-label="Price">
+                <input class="xz-km-in" [value]="row.description" (input)="updateRow('products', $index, 'description', $event)"
+                       maxlength="140" placeholder="What it is" aria-label="Product description">
+                <button type="button" class="xz-km-rowrm" aria-label="Remove product" (click)="removeRow('products', $index)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            }
+            <button type="button" class="xz-km-rowadd" (click)="addRow('products')">+ Add product</button>
+          </div>
+        </div>
+
+        @if (saveError()) {
+          <p class="xz-km-err" role="alert">{{ saveError() }}</p>
+        }
+        @if (saved()) {
+          <p class="xz-km-ok" role="status">{{ saved() }}</p>
+        }
+
+        <p class="xz-km-privacy">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Saved for real against {{ category() || 'this industry' }} — the business then appears in the list beside the rail, with these services and products under it.</span>
+        </p>
+      </div>
+    } @else {
     <div class="xz-km-body">
       <div class="xz-km-left">
         <span class="xz-km-sub">What to upload</span>
@@ -94,10 +159,18 @@
         </p>
       </div>
     </div>
+    }
 
     <div class="xz-km-foot">
-      <span class="xz-km-footcount">{{ docsCount() ? docsCount() + ' document' + (docsCount() === 1 ? '' : 's') + ' added' : 'No documents indexed yet' }}</span>
-      <button type="button" class="xz-btn xz-accent sm" (click)="close()">Done</button>
+      @if (mode() === 'business') {
+        <span class="xz-km-footcount">Creates a Business with its Services and Products.</span>
+        <button type="button" class="xz-btn xz-accent sm" [disabled]="!canSave()" (click)="saveBusiness()">
+          {{ saving() ? 'Saving…' : 'Create business' }}
+        </button>
+      } @else {
+        <span class="xz-km-footcount">{{ docsCount() ? docsCount() + ' document' + (docsCount() === 1 ? '' : 's') + ' added' : 'No documents indexed yet' }}</span>
+        <button type="button" class="xz-btn xz-accent sm" (click)="close()">Done</button>
+      }
     </div>
   </div>
 </div>
