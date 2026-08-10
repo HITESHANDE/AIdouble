@@ -323,6 +323,18 @@ app-experience{display:block}
   display:flex;align-items:center;justify-content:center}
 .xz-ri svg{width:13px;height:13px;stroke:currentColor;fill:currentColor;stroke-width:0}
 .xz-rl.on .xz-ri{background:var(--lime);color:var(--hard)}
+.xz-rl-add{border:1.5px dashed var(--line-2);background:transparent;color:var(--ink-3);font-weight:600}
+.xz-rl-add:hover{border-color:var(--hard);background:var(--paper-2);color:var(--ink)}
+.xz-ri-add{background:var(--paper-2);color:var(--ink-3)}
+.xz-rl-add:hover .xz-ri-add{background:var(--accent-soft);color:var(--accent)}
+.xz-ri-add svg{fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+.xz-rl-new{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:14px;
+  border:1.5px solid var(--hard);background:var(--card)}
+.xz-rl-input{flex:1;min-width:0;border:none;background:transparent;font:inherit;font-size:14px;
+  font-weight:600;color:var(--ink);padding:0}
+.xz-rl-input:focus{outline:none}
+.xz-rl-input:disabled{opacity:.6}
+.xz-rl-err{margin-top:7px;font-size:12px;line-height:1.4;color:var(--warm)}
 .xz-rail-foot{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}
 .xz-langrow{display:flex;flex-wrap:wrap;gap:6px}
 .xz-lang{appearance:none;background:transparent;border:1.5px solid var(--line);border-radius:100px;padding:6px 12px;font-size:12.5px;color:var(--ink-2);transition:all .2s}

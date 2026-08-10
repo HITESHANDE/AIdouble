@@ -1,9 +1,10 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, Injector, OnDestroy, OnInit, ViewChild, afterNextRender, computed, effect, inject, input, output, signal } from '@angular/core';
 import { marked } from 'marked';
 import { LibrechatApi, parseConversationStarters } from '../librechat-api';
 import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData } from '../jobtypes-api';
 import { LivekitVoice, VoiceState, VoiceTranscript } from '../livekit-voice';
 import { AuthFlow, BusinessCreated } from '../auth-flow';
+import { AuthSession } from '../auth-session';
 import { XzKnowledgeModal } from '../knowledge-modal/knowledge-modal';
 
 export type XzMode = 'voice' | 'chat';
@@ -31,6 +32,11 @@ interface AgentOption {
    *  are written for real-time speech rather than chat, so voice calls use
    *  this instead of `key` while chat keeps using `key`. */
   voiceKey?: string;
+  /** True for an industry the visitor added from the rail. Its Business
+   *  Category is real and the business drill-down works, but no LibreChat
+   *  agent exists behind it — so chat and voice stay on the simulated demo
+   *  rather than calling an agent id the backend doesn't know. */
+  custom?: boolean;
 }
 
 // Only these agents currently have a real Business Category mapping; the
@@ -123,6 +129,8 @@ export class XzWorkbench implements OnInit, OnDestroy {
   private readonly jobTypesApi = inject(JobTypesApi);
   private readonly voice = inject(LivekitVoice);
   protected readonly auth = inject(AuthFlow);
+  protected readonly session = inject(AuthSession);
+  private readonly injector = inject(Injector);
 
   protected readonly agents = signal<AgentOption[]>(FALLBACK_AGENTS);
   protected readonly languages = LANGUAGES;
@@ -168,6 +176,68 @@ export class XzWorkbench implements OnInit, OnDestroy {
     const matched = this.agents().filter((a) => a.key === this.agentKey());
     return matched.length ? matched : this.agents();
   });
+
+  // Rail's "Add industry" row. The name is registered as a real Business
+  // Category (the same reference list "About your business" picks from), so
+  // the business drill-down below filters on it for real. No LibreChat agent
+  // exists behind it, so the entry is marked custom — see AgentOption.custom.
+  protected readonly addingIndustry = signal(false);
+  protected readonly newIndustry = signal('');
+  protected readonly addIndustryBusy = signal(false);
+  protected readonly addIndustryError = signal('');
+
+  @ViewChild('industryInput') private industryInput?: ElementRef<HTMLInputElement>;
+
+  protected startAddIndustry() {
+    this.addIndustryError.set('');
+    this.newIndustry.set('');
+    this.addingIndustry.set(true);
+    afterNextRender(() => this.industryInput?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  protected cancelAddIndustry() {
+    if (this.addIndustryBusy()) return;
+    this.addingIndustry.set(false);
+    this.newIndustry.set('');
+    this.addIndustryError.set('');
+  }
+
+  protected async confirmAddIndustry() {
+    const name = this.newIndustry().trim();
+    if (!name || this.addIndustryBusy()) return;
+
+    if (this.agents().some((a) => a.label.toLowerCase() === name.toLowerCase())) {
+      this.addIndustryError.set('That industry is already in the list.');
+      return;
+    }
+
+    this.addIndustryBusy.set(true);
+    this.addIndustryError.set('');
+
+    try {
+      await this.jobTypesApi.createBusinessCategory(name);
+    } catch {
+      this.addIndustryBusy.set(false);
+      this.addIndustryError.set('Could not add that industry. Please try again.');
+      return;
+    }
+
+    const option: AgentOption = {
+      key: `custom:${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      label: name,
+      line: GENERIC_PROMPT,
+      description: null,
+      category: name,
+      prompts: [GENERIC_PROMPT],
+      custom: true,
+    };
+
+    this.agents.update((list) => [...list, option]);
+    this.addIndustryBusy.set(false);
+    this.addingIndustry.set(false);
+    this.newIndustry.set('');
+    this.selectAgent(option.key);
+  }
 
   protected readonly knowledgeOpen = signal(false);
 
@@ -305,7 +375,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   }
 
   private loadAgentDetail(key: string) {
-    if (!this.live() || this.detailedAgentKeys.has(key)) return;
+    if (!this.live() || key.startsWith('custom:') || this.detailedAgentKeys.has(key)) return;
     this.detailedAgentKeys.add(key);
     this.api
       .getAgent(key)
@@ -450,7 +520,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.voicePartialIndex.clear();
     this.clearVoiceReveal();
 
-    if (!this.live()) {
+    if (!this.live() || this.agent().custom) {
       this.voiceState.set('connecting');
       setTimeout(() => this.voiceState.set('listening'), 1500);
       return;
@@ -614,7 +684,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.chatPending.set(true);
     this.beginAwaitingReply();
 
-    if (this.live()) {
+    if (this.live() && !this.agent().custom) {
       let started = false;
       this.api
         .sendAgentMessage({

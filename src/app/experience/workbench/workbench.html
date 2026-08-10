@@ -30,6 +30,31 @@
             {{ opt.label }}
           </button>
         }
+
+        @if (!locked()) {
+          @if (addingIndustry()) {
+            <div class="xz-rl-new">
+              <span class="xz-ri xz-ri-add" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+              <input #industryInput class="xz-rl-input" [value]="newIndustry()" [disabled]="addIndustryBusy()"
+                     (input)="newIndustry.set($any($event.target).value)"
+                     (keydown.enter)="confirmAddIndustry()" (keydown.escape)="cancelAddIndustry()"
+                     (blur)="cancelAddIndustry()" maxlength="40" placeholder="Industry name"
+                     aria-label="New industry name">
+            </div>
+          } @else {
+            <button type="button" class="xz-rl xz-rl-add" (click)="startAddIndustry()">
+              <span class="xz-ri xz-ri-add" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+              Add industry
+            </button>
+          }
+          @if (addIndustryError()) {
+            <p class="xz-rl-err" role="alert">{{ addIndustryError() }}</p>
+          }
+        }
       </div>
       @if (locked() && registeredBusiness()!.connectedSystems.length) {
         <div class="xz-rail-foot">
@@ -121,7 +146,7 @@
       }
 
       <div class="xz-kpanel-foot">
-        @if (locked()) {
+        @if (session.signedIn()) {
           <button type="button" class="xz-btn xz-light sm xz-upload-btn" (click)="openKnowledge()">Upload your knowledge</button>
         } @else {
           <button type="button" class="xz-btn xz-light sm xz-upload-btn"
