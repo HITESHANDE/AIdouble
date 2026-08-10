@@ -88,7 +88,7 @@ export class AuthFlow {
           return;
         }
 
-        window.location.assign('/');
+        this.completeLogin();
       },
       error: (message) => {
         this.passwordBusy.set(false);
