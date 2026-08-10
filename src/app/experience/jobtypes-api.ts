@@ -49,6 +49,19 @@ interface JobInstancesResponse<T> {
   jobs?: JobInstance<T>[];
 }
 
+export interface NewCatalogItem {
+  name: string;
+  description: string;
+  price?: string;
+}
+
+export interface CatalogResult {
+  business: JobInstance<BusinessData>;
+  /** Names of the Services/Products that could not be created. The Business
+   *  itself succeeded whenever this resolves at all. */
+  failed: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class JobTypesApi {
   private readonly session = inject(AuthSession);
@@ -112,9 +125,15 @@ export class JobTypesApi {
   // random org on repeat calls), while this one always attributes to the
   // token's own org. Needs a real session token; falls back to
   // LIBRECHAT_DEMO_TOKEN (via AuthSession.token()) for a signed-out visitor.
+  // parentJobInstanceId is what makes an instance a subjob of another — the
+  // POST body maps straight onto the stored record (ongo-core's
+  // JobInstanceService.getJobInstance copies it verbatim), and it is the same
+  // field listServices/listProducts below filter on. Services and Products
+  // are unreachable from their Business without it.
   async createInstance<T = Record<string, unknown>>(
     jobTypeName: string,
     data: Record<string, unknown>,
+    parentJobInstanceId?: string,
   ): Promise<JobInstance<T>> {
     const url = `${BASE_URL}/api/v1/job-types/name/${encodeURIComponent(jobTypeName)}/instances`;
     const res = await fetch(url, {
@@ -124,7 +143,7 @@ export class JobTypesApi {
         'X-Tenant': LIBRECHAT_TENANT_ID,
         Authorization: `Bearer ${this.session.token()}`,
       },
-      body: JSON.stringify({ data }),
+      body: JSON.stringify(parentJobInstanceId ? { data, parentJobInstanceId } : { data }),
     });
     if (!res.ok) {
       throw new Error(await this.messageFrom(res));
@@ -169,5 +188,65 @@ export class JobTypesApi {
   async listProducts(businessId: string): Promise<JobInstance<ProductData>[]> {
     const all = await this.fetchInstances<ProductData>('Products', []);
     return all.filter((p) => p.parentJobInstanceId === businessId);
+  }
+
+  // Creates a Business and its catalogue in one pass. The Business has to
+  // land first, because its id is the parentJobInstanceId every Service and
+  // Product below is linked by. Children are created one at a time so a
+  // failure names the row that broke rather than failing the whole batch
+  // anonymously; the Business itself is already saved by then, so a partial
+  // catalogue is recoverable by adding the rest rather than starting over.
+  async createBusinessWithCatalog(
+    business: Record<string, unknown>,
+    services: NewCatalogItem[],
+    products: NewCatalogItem[],
+  ): Promise<CatalogResult> {
+    const created = await this.createInstance<BusinessData>('Business', business);
+    const businessName = String(business['Business Name'] ?? '');
+    const failed: string[] = [];
+
+    for (const service of services) {
+      try {
+        await this.createInstance(
+          'Services',
+          this.compact({
+            'Service Name': service.name,
+            'AI Description': service.description,
+            'Business Name': businessName,
+          }),
+          created.id,
+        );
+      } catch {
+        failed.push(service.name);
+      }
+    }
+
+    for (const product of products) {
+      try {
+        await this.createInstance(
+          'Products',
+          this.compact({
+            'Product Name': product.name,
+            'AI Description': product.description,
+            Price: product.price ?? '',
+            'Business Name': businessName,
+          }),
+          created.id,
+        );
+      } catch {
+        failed.push(product.name);
+      }
+    }
+
+    return { business: created, failed };
+  }
+
+  private compact(fields: Record<string, string>): Record<string, string> {
+    const data: Record<string, string> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      const trimmed = value.trim();
+      if (trimmed) data[key] = trimmed;
+    }
+    return data;
   }
 }

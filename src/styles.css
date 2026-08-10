@@ -798,6 +798,31 @@ select.xz-dfield option{background:var(--chrome-2);color:var(--paper)}
   background:var(--paper-2);border:none;border-radius:12px;color:var(--ink);transition:background .2s}
 .xz-km-x:hover{background:var(--line)}
 .xz-km-x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+.xz-km-modes{flex-shrink:0;display:flex;gap:6px;padding:12px 26px;border-bottom:2px solid var(--hard);background:var(--paper)}
+.xz-km-modes button{appearance:none;background:transparent;border:1.5px solid var(--line-2);border-radius:100px;
+  padding:6px 14px;font-size:12.5px;font-weight:600;color:var(--ink-2);transition:all .2s}
+.xz-km-modes button:hover{border-color:var(--hard);color:var(--ink)}
+.xz-km-modes button.on{background:var(--hard);border-color:var(--hard);color:var(--paper)}
+.xz-km-bizbody{padding:22px 26px;overflow-y:auto;min-height:0}
+.xz-km-bizhead{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-bottom:20px}
+.xz-km-cat{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.xz-km-catcol{min-width:0}
+.xz-km-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.xz-km-in{flex:1;min-width:0;padding:9px 12px;border:1.5px solid var(--line-2);border-radius:11px;
+  font:inherit;font-size:13.5px;color:var(--ink);background:var(--card)}
+.xz-km-in:focus{outline:none;border-color:var(--hard)}
+.xz-km-in-price{flex:0 0 76px}
+.xz-km-rowrm{flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;border-radius:8px;color:var(--ink-3)}
+.xz-km-rowrm:hover{background:var(--paper-2);color:var(--ink)}
+.xz-km-rowrm svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round}
+.xz-km-rowadd{background:transparent;border:none;padding:4px 0;font-size:12.5px;font-weight:600;color:var(--accent)}
+.xz-km-rowadd:hover{text-decoration:underline}
+.xz-km-err{margin-top:16px;padding:9px 13px;background:var(--warm);color:var(--paper);
+  border:2px solid var(--hard);border-radius:12px;font-size:13px;line-height:1.4}
+.xz-km-ok{margin-top:16px;padding:9px 13px;background:var(--mint);color:var(--hard);
+  border:2px solid var(--hard);border-radius:12px;font-size:13px;line-height:1.4}
+@media(max-width:720px){.xz-km-cat,.xz-km-bizhead{grid-template-columns:1fr}}
 .xz-km-body{display:grid;grid-template-columns:1fr 1fr;gap:0;overflow-y:auto}
 .xz-km-left{padding:22px 26px;border-right:2px solid var(--hard)}
 .xz-km-right{padding:22px 26px;background:var(--paper)}

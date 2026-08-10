@@ -249,6 +249,13 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.knowledgeOpen.set(false);
   }
 
+  /** A business created from the knowledge modal is saved under the industry
+   *  currently selected in the rail, so reloading that same category is what
+   *  brings it into the list beside it. */
+  protected onBusinessAdded() {
+    this.loadBusinesses(this.agent().category);
+  }
+
   /** True once a real agent list has loaded — gates whether we call the live
    *  API or fall back to the local simulated demo. */
   protected readonly live = signal(false);

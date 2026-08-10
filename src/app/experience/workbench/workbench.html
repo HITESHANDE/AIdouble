@@ -161,7 +161,8 @@
     </aside>
 
     @if (knowledgeOpen()) {
-      <app-xz-knowledge-modal [businessName]="displayName()" [category]="agent().category" (closed)="closeKnowledge()" />
+      <app-xz-knowledge-modal [businessName]="displayName()" [category]="agent().category"
+                              (businessAdded)="onBusinessAdded()" (closed)="closeKnowledge()" />
     }
 
     <div class="xz-agentcol">
