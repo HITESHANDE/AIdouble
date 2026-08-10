@@ -23,7 +23,7 @@ export class Experience {
   protected readonly plan = signal<Plan>(PLANS[1]);
   // White-label preview name — edited from the workbench's "Preview as"
   // field, shown everywhere the page would otherwise say "AI Double".
-  protected readonly brandName = signal('Cynosure');
+  protected readonly brandName = signal('AI Double');
   // Category chosen/created in the sign-in flow's "About your business"
   // step — tells the workbench which industry to select, when one matches.
   protected readonly presetCategory = signal<string | null>(null);

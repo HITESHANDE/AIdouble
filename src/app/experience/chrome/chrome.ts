@@ -21,7 +21,7 @@ export class XzChrome {
   protected readonly userMenuOpen = signal(false);
 
   readonly brandName = input('');
-  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
+  protected readonly displayName = computed(() => this.brandName().trim() || 'AI Double');
 
   readonly regionChange = output<Region>();
 

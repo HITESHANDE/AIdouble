@@ -140,7 +140,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   // re-theming the rail/orb/buttons in this section.
   readonly brandName = input('');
   readonly brandNameChange = output<string>();
-  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
+  protected readonly displayName = computed(() => this.brandName().trim() || 'AI Double');
   protected readonly brandSwatches = BRAND_SWATCHES;
   protected readonly brandColor = signal(BRAND_SWATCHES[0]);
 

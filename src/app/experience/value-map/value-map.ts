@@ -28,7 +28,7 @@ const TEAM: TeamMember[] = [
 })
 export class XzValueMap {
   readonly brandName = input('');
-  protected readonly displayName = computed(() => this.brandName().trim() || 'Cynosure');
+  protected readonly displayName = computed(() => this.brandName().trim() || 'AI Double');
 
   protected readonly channels = CHANNELS;
   protected readonly activeChannel = signal('chat');
