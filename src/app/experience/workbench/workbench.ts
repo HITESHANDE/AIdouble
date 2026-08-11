@@ -346,9 +346,34 @@ export class XzWorkbench implements OnInit, OnDestroy {
   private businessRequestId = 0;
   private bizDetailRequestId = 0;
 
+  // Signing in swaps the bootstrap admin bearer (see AuthSession.loadAdminToken)
+  // for the user's own, and the two can expose different sets of agents and
+  // businesses. Everything fetched under the old token is therefore requested
+  // again rather than left on screen. This only fires on a real transition, so
+  // the SSO path — which returns through a full page load and already mounts
+  // under the user's token — does not fetch twice.
+  private lastSignedIn = this.session.signedIn();
+  private readonly refetchAfterSignIn = effect(() => {
+    const signedIn = this.session.signedIn();
+    if (signedIn === this.lastSignedIn) return;
+    this.lastSignedIn = signedIn;
+    if (!signedIn) return;
+
+    this.detailedAgentKeys.clear();
+    this.loadBusinesses(this.agent().category);
+    this.loadAgents();
+  });
+
   ngOnInit() {
     this.loadBusinesses(this.agent().category);
+    this.loadAgents();
+  }
 
+  /** Fetches the agent list under whatever bearer is current, then resets the
+   *  rail to a clean state for it. Services and products are not fetched here
+   *  — loadBusinesses clears any open business, so they are requested again
+   *  under the new token as soon as one is opened. */
+  private loadAgents() {
     if (!this.api.isConfigured()) return; // no token yet — stay on the simulated demo
     this.api
       .listAgents()
@@ -370,11 +395,13 @@ export class XzWorkbench implements OnInit, OnDestroy {
             };
           });
         if (!mapped.length) return;
-        this.agents.set(mapped);
-        this.agentKey.set(mapped[0].key);
+        // Industries the visitor added stay on the rail. Their category is a
+        // real one, and the backend list never contains them, so replacing
+        // the list wholesale would silently drop them.
+        const added = this.agents().filter((a) => a.custom);
+        this.agents.set([...mapped, ...added]);
         this.live.set(true);
-        this.loadAgentDetail(mapped[0].key);
-        this.loadBusinesses(mapped[0].category);
+        this.selectAgent(mapped[0].key);
       })
       .catch((err) => {
         console.warn('[workbench] live agent list unavailable, using simulated demo:', err);
