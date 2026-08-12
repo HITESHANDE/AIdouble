@@ -1,6 +1,6 @@
 <div class="xz">
   <main class="wrap">
-    <app-xz-workbench [brandName]="brandName()" [presetCategory]="presetCategory()" [registeredBusiness]="registeredBusiness()" (brandNameChange)="onBrandNameChange($event)" />
+    <app-xz-workbench [brandName]="brandName()" [presetCategory]="presetCategory()" [registeredBusiness]="registeredBusiness()" [onlyCategory]="onlyCategory()" [businessName]="businessName()" [presetBusinessId]="businessId()" [audiencePicker]="true" [swatchPicker]="false" [knowledgeUpload]="false" [introBlurb]="false" pinnedAgent="Medical Aesthetics" (brandNameChange)="onBrandNameChange($event)" />
   </main>
 
   @if (auth.open()) {
