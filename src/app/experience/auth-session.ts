@@ -25,10 +25,25 @@ export class AuthSession {
   // into. A real sign-in always takes priority over it.
   private readonly adminToken = signal('');
 
+  // The hardcoded sample user the agents run as on the live-demo route, so a
+  // visitor who never signs in is still a real person to the agent rather
+  // than the admin service account. Requested per route, not at startup.
+  private readonly sampleToken = signal('');
+  private readonly sampleUserId = signal('');
+  private sampleLogin: Promise<void> | null = null;
+
   readonly userName = signal(this.read(NAME_KEY));
   readonly signedIn = computed(() => this.stored().length > 0);
 
   readonly token = computed(() => this.stored() || this.adminToken() || LIBRECHAT_DEMO_TOKEN);
+
+  /** What the chat and voice agents identify the caller by. A real sign-in
+   *  always wins; the sample user only stands in for an anonymous visitor. */
+  readonly agentToken = computed(
+    () => this.stored() || this.sampleToken() || this.adminToken() || LIBRECHAT_DEMO_TOKEN,
+  );
+
+  readonly agentUserId = computed(() => (this.stored() ? '' : this.sampleUserId()));
 
   async loadAdminToken(): Promise<void> {
     try {
@@ -37,6 +52,26 @@ export class AuthSession {
     } catch (err) {
       console.warn('[auth-session] admin token fetch failed, falling back to the static demo token:', err);
     }
+  }
+
+  loadSampleUser(): void {
+    if (this.sampleLogin) return;
+    this.sampleLogin = this.adminAuth
+      .loginSampleUser()
+      .then((user) => {
+        if (!user.token) return;
+        this.sampleToken.set(user.token);
+        this.sampleUserId.set(user.accountUserId);
+      })
+      .catch((err) => {
+        console.warn('[auth-session] sample user sign-in failed, the agent stays anonymous:', err);
+      });
+  }
+
+  /** Resolves once any in-flight sample sign-in has settled, so a call started
+   *  moments after the page loads still reaches the agent as that user. */
+  whenAgentReady(): Promise<void> {
+    return this.sampleLogin ?? Promise.resolve();
   }
 
   readonly displayName = computed(() => {

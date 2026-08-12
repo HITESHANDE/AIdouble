@@ -94,6 +94,7 @@ export class LivekitVoice {
     options.onState('connecting');
 
     try {
+      await this.session.whenAgentReady();
       const identity = this.api.userId();
       const roomName = this.roomName(options.agentId, identity);
       this.log('starting call', {
@@ -110,7 +111,7 @@ export class LivekitVoice {
         conversationId: options.conversationId ?? '',
         tenantId: LIBRECHAT_TENANT_ID,
         gosureUserId: identity,
-        gosureToken: this.session.token(),
+        gosureToken: this.session.agentToken(),
       });
       this.log('token minted', { length: token.length });
 
