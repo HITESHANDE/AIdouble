@@ -134,10 +134,20 @@ export class LivekitVoice {
         autoGainControl: true,
       });
       this.log('microphone published');
-      await this.applyNoiseFilter(micPublication);
       this.startInputMeter(micPublication);
       await this.enableAudioPlayback(room);
       options.onState('listening');
+
+      // Not awaited: Krisp is ~2 MB over the wire, which is nothing from the
+      // dev server but several seconds from the deployed site — long enough,
+      // on the first call of a visit, to hold the call on "Connecting…" while
+      // the agent is already in the room talking. The raw mic is published and
+      // audible to the agent the whole time; the filter swaps in when it lands.
+      void this.applyNoiseFilter(micPublication).then(() => {
+        if (this.room !== room) return;
+        this.stopInputMeter();
+        this.startInputMeter(micPublication);
+      });
     } catch (err: unknown) {
       this.logError('start failed', err);
       this.options?.onError(this.describeError(err));
