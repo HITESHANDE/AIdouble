@@ -114,6 +114,9 @@ export class LibrechatApi {
 
       const run = async () => {
         try {
+          await this.session.whenAgentReady();
+          if (cancelled) return;
+
           const body = {
             endpoint: 'agents',
             agent_id: opts.agentId,
@@ -162,7 +165,7 @@ export class LibrechatApi {
   }
 
   private identityHeaders(): Record<string, string> {
-    const token = this.session.token();
+    const token = this.session.agentToken();
     return {
       'X-Tenant-Id': LIBRECHAT_TENANT_ID,
       'X-User-Id': this.userId(),
@@ -170,11 +173,15 @@ export class LibrechatApi {
     };
   }
 
-  /** The real GoSure user behind the configured token (decoded client-side —
-   *  JWT payloads aren't encrypted, just base64url). Falls back to a stable
-   *  per-browser anonymous id if there's no token or it can't be parsed. */
+  /** The real GoSure user behind the configured token — the accountUserId the
+   *  login handed back where there is one, otherwise decoded from the token
+   *  client-side (JWT payloads aren't encrypted, just base64url). Falls back
+   *  to a stable per-browser anonymous id if neither is available. */
   userId(): string {
-    const claims = this.decodeJwt(this.session.token());
+    const fromLogin = this.session.agentUserId();
+    if (fromLogin) return this.toHeaderSafeUserId(fromLogin);
+
+    const claims = this.decodeJwt(this.session.agentToken());
     const raw = claims?.['userId'] ?? claims?.['sub'];
     return typeof raw === 'string' && raw ? this.toHeaderSafeUserId(raw) : this.visitorId();
   }

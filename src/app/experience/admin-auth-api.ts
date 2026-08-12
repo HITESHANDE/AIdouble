@@ -14,9 +14,23 @@ const TENANT = 'aidouble';
 const ADMIN_USERNAME = 'aidouble@gosure.ai';
 const ADMIN_PASSWORD = '123456';
 
+// The person the agent believes it is talking to on the live-demo route.
+// Same exposure warning as the admin credentials above: this ships in the
+// public bundle, so it must stay an account that holds nothing but demo data.
+const SAMPLE_USERNAME = 'aidoublesample@aidouble.com';
+const SAMPLE_PASSWORD = 'Gosure@1234';
+
 interface LoginResponse {
   token?: string;
   status?: string;
+  username?: string;
+  accountUserId?: string;
+}
+
+export interface AgentUser {
+  token: string;
+  accountUserId: string;
+  username: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -25,15 +39,32 @@ export class AdminAuthApi {
   // makes the demo show every business/category by default instead of
   // whatever subset a narrower-role token happens to see.
   async login(): Promise<string> {
+    const body = await this.post(ADMIN_USERNAME, ADMIN_PASSWORD);
+    return (body.token ?? '').trim();
+  }
+
+  // The identity the chat and voice agents run under on /cynosure. cokube
+  // takes the agent's user from the login response's accountUserId rather
+  // than from the token's own claims, so this keeps both and lets the caller
+  // prefer the same field.
+  async loginSampleUser(): Promise<AgentUser> {
+    const body = await this.post(SAMPLE_USERNAME, SAMPLE_PASSWORD);
+    return {
+      token: (body.token ?? '').trim(),
+      accountUserId: (body.accountUserId ?? '').trim(),
+      username: (body.username ?? SAMPLE_USERNAME).trim(),
+    };
+  }
+
+  private async post(username: string, password: string): Promise<LoginResponse> {
     const res = await fetch(`${BASE_URL}/api/v1/users/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Tenant': TENANT },
-      body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD }),
+      body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
       throw new Error(`POST users/login ${res.status}: ${await res.text().catch(() => '')}`);
     }
-    const body = (await res.json()) as LoginResponse;
-    return (body.token ?? '').trim();
+    return (await res.json()) as LoginResponse;
   }
 }

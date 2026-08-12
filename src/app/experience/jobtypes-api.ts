@@ -49,11 +49,8 @@ export interface ProductData {
 
 export interface BrokerData {
   'Broker Name'?: string;
-  Name?: string;
-  'First Name'?: string;
-  'Last Name'?: string;
-  'AI Description'?: string;
-  'Short Description'?: string;
+  Description?: string;
+  'Broker Specialization'?: string;
   'Business Category'?: string;
   'Business Category_ref'?: { label: string };
 }
@@ -246,29 +243,22 @@ export class JobTypesApi {
     return all.filter((p) => p.parentJobInstanceId === businessId);
   }
 
+  // Brokers are not subjobs of a Business — they carry their own Business
+  // Category, so they filter server-side the way listBusinesses does. The
+  // client-side pass narrows "contains" back to the exact category.
   async listServiceProviders(category: string): Promise<ServiceProvider[]> {
-    const all = await this.fetchInstances<BrokerData>('Brokers', []);
+    const brokers = await this.fetchInstances<BrokerData>('Brokers', [
+      { fieldName: 'Business Category', condition: 'contains', value: category },
+    ]);
     const wanted = category.trim().toLowerCase();
-    return all
+    return brokers
       .filter((broker) => (this.categoryOf(broker) ?? '').toLowerCase() === wanted)
       .map((broker) => ({
         id: broker.id,
-        name: this.brokerName(broker.data),
-        detail: this.brokerDetail(broker.data),
+        name: (broker.data['Broker Name'] ?? '').trim(),
+        detail: (broker.data.Description ?? '').trim(),
       }))
       .filter((provider) => provider.name);
-  }
-
-  private brokerName(data: BrokerData): string {
-    const fullName = [data['First Name'], data['Last Name']]
-      .map((part) => (part ?? '').trim())
-      .filter(Boolean)
-      .join(' ');
-    return (data['Broker Name'] ?? '').trim() || (data.Name ?? '').trim() || fullName;
-  }
-
-  private brokerDetail(data: BrokerData): string {
-    return (data['AI Description'] ?? '').trim() || (data['Short Description'] ?? '').trim();
   }
 
   // Creates a Business and its catalogue in one pass. The Business has to
