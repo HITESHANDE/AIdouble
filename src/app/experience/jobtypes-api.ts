@@ -22,10 +22,12 @@ export interface JobInstance<T = Record<string, unknown>> {
 
 export interface BusinessData {
   'Business Name': string;
+  'First Name'?: string;
   'Short Description'?: string;
   'Business Address'?: string;
   'Website URL'?: string;
   'Business Type'?: string;
+  'Business Category'?: string;
   'Business Category_ref'?: { label: string };
 }
 
@@ -47,6 +49,12 @@ export interface ProductData {
 
 interface JobInstancesResponse<T> {
   jobs?: JobInstance<T>[];
+}
+
+export interface BusinessBySlug {
+  id: string;
+  firstName: string;
+  category: string | null;
 }
 
 export interface NewCatalogItem {
@@ -103,6 +111,37 @@ export class JobTypesApi {
     return this.fetchInstances<BusinessData>('Business', [
       { fieldName: 'Business Category', condition: 'contains', value: category },
     ]);
+  }
+
+  // Looks up the Business a route slug stands for. "is" would be the exact
+  // equality condition, but it is case-sensitive and the slug is lower-case
+  // while the stored First Name is not ("cynosure" vs "Cynosure"), so
+  // "contains" is what actually matches.
+  async findBySlug(slug: string): Promise<BusinessBySlug | null> {
+    const jobs = await this.fetchInstances<BusinessData>('Business', [
+      { fieldName: 'First Name', condition: 'contains', value: slug },
+    ]);
+    // "contains" is a substring match, so it can hand back several unrelated
+    // businesses — the equality the slug actually means is enforced here.
+    const wanted = slug.trim().toLowerCase();
+    const business = jobs.find((b) => (b.data['First Name'] ?? '').trim().toLowerCase() === wanted);
+    if (!business) return null;
+
+    return {
+      id: business.id,
+      firstName: (business.data['First Name'] ?? '').trim(),
+      category: this.categoryOf(business),
+    };
+  }
+
+  private categoryOf(business: JobInstance<BusinessData>): string | null {
+    const label = business.data['Business Category_ref']?.label?.trim();
+    if (label) return label;
+
+    // Falls back to the raw field, which carries the reference id alongside
+    // the name — "Medical Aesthetics(6a70ac4f2c869b0bed964af7)".
+    const raw = (business.data['Business Category'] ?? '').trim();
+    return raw.replace(/\s*\([^)]*\)\s*$/, '').trim() || null;
   }
 
   // The real master list of valid categories — what "About your business"

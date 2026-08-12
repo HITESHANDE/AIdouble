@@ -118,6 +118,9 @@ const FALLBACK_AGENTS: AgentOption[] = [
 const GENERIC_PROMPT = 'Ask me anything.';
 const LANGUAGES = ['English'];
 const BRAND_SWATCHES = ['#6C46E8', '#00875A', '#FF6B35', '#2563EB', '#DB2777', '#141110'];
+const AUDIENCES = ['Business', 'Customer'] as const;
+
+type Audience = (typeof AUDIENCES)[number];
 
 @Component({
   selector: 'app-xz-workbench',
@@ -144,13 +147,36 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly brandSwatches = BRAND_SWATCHES;
   protected readonly brandColor = signal(BRAND_SWATCHES[0]);
 
+  readonly audiencePicker = input(false);
+  readonly swatchPicker = input(true);
+  readonly knowledgeUpload = input(true);
+  readonly businessName = input('');
+  readonly presetBusinessId = input<string | null>(null);
+  readonly introBlurb = input(true);
+  readonly pinnedAgent = input<string | null>(null);
+  protected readonly audiences = AUDIENCES;
+  protected readonly audience = signal<Audience>(AUDIENCES[0]);
+  protected readonly customerView = computed(() => this.audiencePicker() && this.audience() === 'Customer');
+  protected readonly headline = computed(() =>
+    this.audiencePicker() && this.audience() === 'Business'
+      ? 'What your business would experience.'
+      : 'What your customers would experience.',
+  );
+
+  protected onAudienceChange(value: string) {
+    this.audience.set(value as Audience);
+  }
+
   // Category chosen/created in the sign-in flow's "About your business" step
   // — jumps the rail to the matching industry, when one of the demo agents
   // actually covers it. A brand-new category typed via "Add new" has no
   // matching agent, so it's created in GoSure but the rail stays put.
   readonly presetCategory = input<string | null>(null);
-  private readonly applyPresetCategory = effect(() => {
-    const category = this.presetCategory();
+  // The category of the Business this route stands for, looked up by slug.
+  // Unlike presetCategory it also narrows the rail — see visibleAgents.
+  readonly onlyCategory = input<string | null>(null);
+  private readonly applyCategorySelection = effect(() => {
+    const category = this.onlyCategory() ?? this.presetCategory();
     if (!category) return;
     const match = this.agents().find((a) => this.categoryMatches(a.category, category));
     if (match && match.key !== this.agentKey()) {
@@ -172,8 +198,15 @@ export class XzWorkbench implements OnInit, OnDestroy {
   // category is brand new (via "Add new"), there's no demo agent behind it
   // yet, so this falls back to showing every agent rather than an empty rail.
   protected readonly visibleAgents = computed(() => {
-    if (!this.locked()) return this.agents();
-    const matched = this.agents().filter((a) => a.key === this.agentKey());
+    if (this.locked()) {
+      const matched = this.agents().filter((a) => a.key === this.agentKey());
+      return matched.length ? matched : this.agents();
+    }
+    // A slug that resolves to a category no demo agent covers falls back to
+    // the full rail rather than an empty one, same as the locked case above.
+    const only = this.onlyCategory();
+    if (!only) return this.agents();
+    const matched = this.agents().filter((a) => this.categoryMatches(a.category, only));
     return matched.length ? matched : this.agents();
   });
 
@@ -282,6 +315,21 @@ export class XzWorkbench implements OnInit, OnDestroy {
     () => this.businesses().find((b) => b.id === this.selectedBusinessId()) ?? null,
   );
 
+  // Opens presetBusinessId's drill-down as soon as that business appears in
+  // the loaded list, so the route lands on its services and products rather
+  // than on the picker. The list is reloaded whenever the agent changes —
+  // including when the live agent list replaces the fallback one on startup —
+  // so this reapplies per load rather than once, and defers to any choice the
+  // visitor has since made: another business selected, or backed out entirely.
+  private presetBusinessDismissed = false;
+  private readonly applyPresetBusiness = effect(() => {
+    const id = this.presetBusinessId();
+    const list = this.businesses();
+    if (!id || this.presetBusinessDismissed || this.selectedBusinessId()) return;
+    if (!list.some((b) => b.id === id)) return;
+    this.selectBusiness(id);
+  });
+
   // Voice-call state. A live agent list means agentKey() is a real LibreChat
   // agent id, so the call goes to LiveKit; otherwise it stays simulated.
   protected readonly voiceState = signal<VoiceState>('idle');
@@ -364,7 +412,20 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.loadAgents();
   });
 
+  private withPinnedFirst(list: AgentOption[]): AgentOption[] {
+    const pinned = this.pinnedAgent()?.trim().toLowerCase();
+    if (!pinned) return list;
+    const index = list.findIndex(
+      (a) => a.label.trim().toLowerCase() === pinned || a.category.trim().toLowerCase() === pinned,
+    );
+    if (index < 1) return list;
+    return [list[index], ...list.slice(0, index), ...list.slice(index + 1)];
+  }
+
   ngOnInit() {
+    const ordered = this.withPinnedFirst(this.agents());
+    this.agents.set(ordered);
+    this.agentKey.set(ordered[0].key);
     this.loadBusinesses(this.agent().category);
     this.loadAgents();
   }
@@ -395,13 +456,14 @@ export class XzWorkbench implements OnInit, OnDestroy {
             };
           });
         if (!mapped.length) return;
+        const ordered = this.withPinnedFirst(mapped);
         // Industries the visitor added stay on the rail. Their category is a
         // real one, and the backend list never contains them, so replacing
         // the list wholesale would silently drop them.
         const added = this.agents().filter((a) => a.custom);
-        this.agents.set([...mapped, ...added]);
+        this.agents.set([...ordered, ...added]);
         this.live.set(true);
-        this.selectAgent(mapped[0].key);
+        this.selectAgent(ordered[0].key);
       })
       .catch((err) => {
         console.warn('[workbench] live agent list unavailable, using simulated demo:', err);
@@ -476,6 +538,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   }
 
   protected backToBusinesses() {
+    this.presetBusinessDismissed = true;
     this.selectedBusinessId.set(null);
     this.services.set([]);
     this.products.set([]);

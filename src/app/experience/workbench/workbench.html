@@ -2,163 +2,187 @@
   <div class="xz-pane-intro">
     <div>
       <span class="xz-stepnote">Live demo</span>
-      <h1>What your customers would experience.</h1>
-      <p>Pick an industry, browse the businesses behind it, then start a live session — powered by {{ displayName() }}'s own conversation and voice engine.</p>
+      <h1>{{ headline() }}</h1>
+      @if (introBlurb()) {
+        <p>Pick an industry, browse the businesses behind it, then start a live session — powered by {{ displayName() }}'s own conversation and voice engine.</p>
+      }
     </div>
   </div>
 
   <div class="xz-brandbar">
     <span class="xz-bb-label">Preview as</span>
-    <input class="xz-bb-name" [value]="brandName()" [disabled]="locked()" (input)="brandNameChange.emit($any($event.target).value)" maxlength="26" aria-label="Your company name" placeholder="Your company name">
-    <div class="xz-bb-swatches" role="group" aria-label="Brand colour">
-      @for (color of brandSwatches; track color) {
-        <button type="button" class="xz-bb-swatch" [class.on]="color === brandColor()" [style.background]="color" [attr.aria-label]="'Brand colour ' + color" (click)="brandColor.set(color)"></button>
-      }
-    </div>
-    <span class="xz-bb-hint">{{ locked() ? "This is your business now — signed in as " + displayName() + "." : 'Your name and colour, applied across the demo.' }}</span>
-  </div>
-
-  <div class="xz-vgridwrap">
-    <aside class="xz-rail">
-      <h4>{{ locked() ? 'Your industry' : 'Industries' }}</h4>
-      <div class="xz-rail-list">
-        @for (opt of visibleAgents(); track opt.key) {
-          <button type="button" class="xz-rl" [class.on]="opt.key === agentKey()" (click)="selectAgent(opt.key)">
-            <span class="xz-ri" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor" stroke="none"/></svg>
-            </span>
-            {{ opt.label }}
-          </button>
+    @if (audiencePicker()) {
+      <select class="xz-bb-name xz-bb-select" (change)="onAudienceChange($any($event.target).value)" aria-label="Preview as">
+        @for (option of audiences; track option) {
+          <option [value]="option" [selected]="option === audience()">{{ option }}</option>
         }
-
-        @if (!locked()) {
-          @if (addingIndustry()) {
-            <div class="xz-rl-new">
-              <span class="xz-ri xz-ri-add" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </span>
-              <input #industryInput class="xz-rl-input" [value]="newIndustry()" [disabled]="addIndustryBusy()"
-                     (input)="newIndustry.set($any($event.target).value)"
-                     (keydown.enter)="confirmAddIndustry()" (keydown.escape)="cancelAddIndustry()"
-                     (blur)="cancelAddIndustry()" maxlength="40" placeholder="Industry name"
-                     aria-label="New industry name">
-            </div>
-          } @else {
-            <button type="button" class="xz-rl xz-rl-add" (click)="startAddIndustry()">
-              <span class="xz-ri xz-ri-add" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              </span>
-              Add industry
-            </button>
-          }
-          @if (addIndustryError()) {
-            <p class="xz-rl-err" role="alert">{{ addIndustryError() }}</p>
-          }
+      </select>
+    } @else {
+      <input class="xz-bb-name" [value]="brandName()" [disabled]="locked()" (input)="brandNameChange.emit($any($event.target).value)" maxlength="26" aria-label="Your company name" placeholder="Your company name">
+    }
+    @if (businessName()) {
+      <label class="xz-bb-label" for="xz-bb-biz">Business Name</label>
+      <input id="xz-bb-biz" class="xz-bb-name" [value]="businessName()" readonly>
+    }
+    @if (swatchPicker()) {
+      <div class="xz-bb-swatches" role="group" aria-label="Brand colour">
+        @for (color of brandSwatches; track color) {
+          <button type="button" class="xz-bb-swatch" [class.on]="color === brandColor()" [style.background]="color" [attr.aria-label]="'Brand colour ' + color" (click)="brandColor.set(color)"></button>
         }
       </div>
-      @if (locked() && registeredBusiness()!.connectedSystems.length) {
+    }
+    @if (locked()) {
+      <span class="xz-bb-hint">This is your business now — signed in as {{ displayName() }}.</span>
+    } @else if (!audiencePicker()) {
+      <span class="xz-bb-hint">Your name and colour, applied across the demo.</span>
+    }
+  </div>
+
+  <div class="xz-vgridwrap" [class.xz-vgridsolo]="customerView()">
+    @if (!customerView()) {
+      <aside class="xz-rail">
+        <h4>{{ locked() ? 'Your industry' : 'Industries' }}</h4>
+        <div class="xz-rail-list">
+          @for (opt of visibleAgents(); track opt.key) {
+            <button type="button" class="xz-rl" [class.on]="opt.key === agentKey()" (click)="selectAgent(opt.key)">
+              <span class="xz-ri" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor" stroke="none"/></svg>
+              </span>
+              {{ opt.label }}
+            </button>
+          }
+
+          @if (!locked()) {
+            @if (addingIndustry()) {
+              <div class="xz-rl-new">
+                <span class="xz-ri xz-ri-add" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                <input #industryInput class="xz-rl-input" [value]="newIndustry()" [disabled]="addIndustryBusy()"
+                       (input)="newIndustry.set($any($event.target).value)"
+                       (keydown.enter)="confirmAddIndustry()" (keydown.escape)="cancelAddIndustry()"
+                       (blur)="cancelAddIndustry()" maxlength="40" placeholder="Industry name"
+                       aria-label="New industry name">
+              </div>
+            } @else {
+              <button type="button" class="xz-rl xz-rl-add" (click)="startAddIndustry()">
+                <span class="xz-ri xz-ri-add" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </span>
+                Add industry
+              </button>
+            }
+            @if (addIndustryError()) {
+              <p class="xz-rl-err" role="alert">{{ addIndustryError() }}</p>
+            }
+          }
+        </div>
+        @if (locked() && registeredBusiness()!.connectedSystems.length) {
+          <div class="xz-rail-foot">
+            <h4>Connected systems</h4>
+            <div class="xz-connsys">
+              @for (sys of registeredBusiness()!.connectedSystems; track sys.name) {
+                <span class="xz-connchip" [title]="sys.description">{{ sys.name }}</span>
+              }
+            </div>
+          </div>
+        }
         <div class="xz-rail-foot">
-          <h4>Connected systems</h4>
-          <div class="xz-connsys">
-            @for (sys of registeredBusiness()!.connectedSystems; track sys.name) {
-              <span class="xz-connchip" [title]="sys.description">{{ sys.name }}</span>
+          <h4>Language</h4>
+          <div class="xz-langrow">
+            @for (lang of languages; track lang) {
+              <button type="button" class="xz-lang" [class.on]="lang === language()" (click)="language.set(lang)">{{ lang }}</button>
             }
           </div>
         </div>
-      }
-      <div class="xz-rail-foot">
-        <h4>Language</h4>
-        <div class="xz-langrow">
-          @for (lang of languages; track lang) {
-            <button type="button" class="xz-lang" [class.on]="lang === language()" (click)="language.set(lang)">{{ lang }}</button>
-          }
-        </div>
-      </div>
-    </aside>
+      </aside>
 
-    <aside class="xz-kpanel">
-      @if (!selectedBusiness()) {
-        <h4>Businesses</h4>
-        <span class="xz-kfor">{{ agent().category }}</span>
-        <div class="xz-kscroll">
-          @if (businessesLoading()) {
-            <div class="xz-biz-empty"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading businesses…</div>
-          } @else if (businessesError()) {
-            <div class="xz-biz-empty">Couldn't load businesses right now.</div>
-          } @else if (!businesses().length) {
-            <div class="xz-biz-empty">No businesses listed under {{ agent().category }} yet.</div>
-          } @else {
-            @for (biz of businesses(); track biz.id) {
-              <button type="button" class="xz-kitem xz-biz-item" (click)="selectBusiness(biz.id)">
-                <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg></span>
-                <span class="xz-kt">
-                  <b>{{ biz.data['Business Name'] }}</b>
-                  @if (biz.data['Short Description']) { <span>{{ biz.data['Short Description'] }}</span> }
-                </span>
-              </button>
-            }
-          }
-        </div>
-      } @else {
-        <button type="button" class="xz-biz-back" (click)="backToBusinesses()">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
-          Businesses
-        </button>
-        <span class="xz-kfor">{{ selectedBusiness()!.data['Business Name'] }}</span>
-
-        <div class="xz-kscroll">
-          <h4 style="margin-top:6px">Services</h4>
-          @if (servicesLoading()) {
-            <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
-          } @else if (!services().length) {
-            <div class="xz-biz-empty sm">No services listed yet.</div>
-          } @else {
-            @for (svc of services(); track svc.id) {
-              <div class="xz-kitem">
-                <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
-                <span class="xz-kt"><b>{{ svc.data['Service Name'] }}</b>
-                  @if (svc.data['AI Description']) { <span>{{ svc.data['AI Description'] }}</span> }
-                </span>
-              </div>
-            }
-          }
-
-          <h4 style="margin-top:14px">Products</h4>
-          @if (productsLoading()) {
-            <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
-          } @else if (!products().length) {
-            <div class="xz-biz-empty sm">No products listed yet.</div>
-          } @else {
-            @for (prod of products(); track prod.id) {
-              <div class="xz-kitem">
-                <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
-                <span class="xz-kt">
-                  <b>{{ prod.data['Product Name'] }}</b>
-                  <span>
-                    @if (prod.data['Price']) { <span class="xz-prod-price">{{ prod.data['Price'] }}</span> }
-                    @if (prod.data['AI Description']) { {{ prod.data['AI Description'] }} }
+      <aside class="xz-kpanel">
+        @if (!selectedBusiness()) {
+          <h4>Businesses</h4>
+          <span class="xz-kfor">{{ agent().category }}</span>
+          <div class="xz-kscroll">
+            @if (businessesLoading()) {
+              <div class="xz-biz-empty"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading businesses…</div>
+            } @else if (businessesError()) {
+              <div class="xz-biz-empty">Couldn't load businesses right now.</div>
+            } @else if (!businesses().length) {
+              <div class="xz-biz-empty">No businesses listed under {{ agent().category }} yet.</div>
+            } @else {
+              @for (biz of businesses(); track biz.id) {
+                <button type="button" class="xz-kitem xz-biz-item" (click)="selectBusiness(biz.id)">
+                  <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg></span>
+                  <span class="xz-kt">
+                    <b>{{ biz.data['Business Name'] }}</b>
+                    @if (biz.data['Short Description']) { <span>{{ biz.data['Short Description'] }}</span> }
                   </span>
-                </span>
-              </div>
+                </button>
+              }
             }
-          }
-        </div>
-      }
-
-      <div class="xz-kpanel-foot">
-        @if (session.signedIn()) {
-          <button type="button" class="xz-btn xz-light sm xz-upload-btn" (click)="openKnowledge()">Upload your knowledge</button>
+          </div>
         } @else {
-          <button type="button" class="xz-btn xz-light sm xz-upload-btn"
-                  [class.xz-busy]="auth.busyFor('workbench')" [attr.aria-busy]="auth.busyFor('workbench')"
-                  (click)="auth.start('workbench')">Sign in and upload</button>
-          @if (auth.errorFor('workbench')) {
-            <p class="xz-autherr xz-autherr-inline" role="alert">{{ auth.errorFor('workbench') }}</p>
-          }
+          <button type="button" class="xz-biz-back" (click)="backToBusinesses()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+            Businesses
+          </button>
+          <span class="xz-kfor">{{ selectedBusiness()!.data['Business Name'] }}</span>
+
+          <div class="xz-kscroll">
+            <h4 style="margin-top:6px">Services</h4>
+            @if (servicesLoading()) {
+              <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
+            } @else if (!services().length) {
+              <div class="xz-biz-empty sm">No services listed yet.</div>
+            } @else {
+              @for (svc of services(); track svc.id) {
+                <div class="xz-kitem">
+                  <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
+                  <span class="xz-kt"><b>{{ svc.data['Service Name'] }}</b>
+                    @if (svc.data['AI Description']) { <span>{{ svc.data['AI Description'] }}</span> }
+                  </span>
+                </div>
+              }
+            }
+
+            <h4 style="margin-top:14px">Products</h4>
+            @if (productsLoading()) {
+              <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
+            } @else if (!products().length) {
+              <div class="xz-biz-empty sm">No products listed yet.</div>
+            } @else {
+              @for (prod of products(); track prod.id) {
+                <div class="xz-kitem">
+                  <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
+                  <span class="xz-kt">
+                    <b>{{ prod.data['Product Name'] }}</b>
+                    <span>
+                      @if (prod.data['Price']) { <span class="xz-prod-price">{{ prod.data['Price'] }}</span> }
+                      @if (prod.data['AI Description']) { {{ prod.data['AI Description'] }} }
+                    </span>
+                  </span>
+                </div>
+              }
+            }
+          </div>
         }
-        <span class="xz-upload-status">{{ uploadedFiles().length ? uploadedFiles().length + ' document' + (uploadedFiles().length === 1 ? '' : 's') + ' indexed' : 'No documents indexed yet' }}</span>
-      </div>
-    </aside>
+
+        @if (knowledgeUpload()) {
+          <div class="xz-kpanel-foot">
+            @if (session.signedIn()) {
+              <button type="button" class="xz-btn xz-light sm xz-upload-btn" (click)="openKnowledge()">Upload your knowledge</button>
+            } @else {
+              <button type="button" class="xz-btn xz-light sm xz-upload-btn"
+                      [class.xz-busy]="auth.busyFor('workbench')" [attr.aria-busy]="auth.busyFor('workbench')"
+                      (click)="auth.start('workbench')">Sign in and upload</button>
+              @if (auth.errorFor('workbench')) {
+                <p class="xz-autherr xz-autherr-inline" role="alert">{{ auth.errorFor('workbench') }}</p>
+              }
+            }
+            <span class="xz-upload-status">{{ uploadedFiles().length ? uploadedFiles().length + ' document' + (uploadedFiles().length === 1 ? '' : 's') + ' indexed' : 'No documents indexed yet' }}</span>
+          </div>
+        }
+      </aside>
+    }
 
     @if (knowledgeOpen()) {
       <app-xz-knowledge-modal [businessName]="displayName()" [category]="agent().category"
