@@ -52,7 +52,7 @@
             </button>
           }
 
-          @if (!locked()) {
+          @if (!locked() && addIndustryEnabled()) {
             @if (addingIndustry()) {
               <div class="xz-rl-new">
                 <span class="xz-ri xz-ri-add" aria-hidden="true">

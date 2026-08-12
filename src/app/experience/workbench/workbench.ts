@@ -154,6 +154,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   readonly presetBusinessId = input<string | null>(null);
   readonly introBlurb = input(true);
   readonly pinnedAgent = input<string | null>(null);
+  readonly addIndustryEnabled = input(true);
   protected readonly audiences = AUDIENCES;
   protected readonly audience = signal<Audience>(AUDIENCES[0]);
   protected readonly customerView = computed(() => this.audiencePicker() && this.audience() === 'Customer');
@@ -222,6 +223,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   @ViewChild('industryInput') private industryInput?: ElementRef<HTMLInputElement>;
 
   protected startAddIndustry() {
+    if (!this.addIndustryEnabled()) return;
     this.addIndustryError.set('');
     this.newIndustry.set('');
     this.addingIndustry.set(true);
