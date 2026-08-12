@@ -1,7 +1,7 @@
 import { Component, ElementRef, Injector, OnDestroy, OnInit, ViewChild, afterNextRender, computed, effect, inject, input, output, signal } from '@angular/core';
 import { marked } from 'marked';
 import { LibrechatApi, parseConversationStarters } from '../librechat-api';
-import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData } from '../jobtypes-api';
+import { BusinessData, JobInstance, JobTypesApi, ProductData, ServiceData, ServiceProvider } from '../jobtypes-api';
 import { LivekitVoice, VoiceState, VoiceTranscript } from '../livekit-voice';
 import { AuthFlow, BusinessCreated } from '../auth-flow';
 import { AuthSession } from '../auth-session';
@@ -155,6 +155,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
   readonly introBlurb = input(true);
   readonly pinnedAgent = input<string | null>(null);
   readonly addIndustryEnabled = input(true);
+  readonly modeNote = input<string | null>(null);
   protected readonly audiences = AUDIENCES;
   protected readonly audience = signal<Audience>(AUDIENCES[0]);
   protected readonly customerView = computed(() => this.audiencePicker() && this.audience() === 'Customer');
@@ -310,8 +311,13 @@ export class XzWorkbench implements OnInit, OnDestroy {
   protected readonly selectedBusinessId = signal<string | null>(null);
   protected readonly services = signal<JobInstance<ServiceData>[]>([]);
   protected readonly products = signal<JobInstance<ProductData>[]>([]);
+  protected readonly serviceProviders = signal<ServiceProvider[]>([]);
   protected readonly servicesLoading = signal(false);
   protected readonly productsLoading = signal(false);
+  protected readonly serviceProvidersLoading = signal(false);
+  protected readonly servicesOpen = signal(false);
+  protected readonly productsOpen = signal(false);
+  protected readonly serviceProvidersOpen = signal(false);
 
   protected readonly selectedBusiness = computed(
     () => this.businesses().find((b) => b.id === this.selectedBusinessId()) ?? null,
@@ -511,9 +517,24 @@ export class XzWorkbench implements OnInit, OnDestroy {
       });
   }
 
+  protected toggleServices() {
+    this.servicesOpen.set(!this.servicesOpen());
+  }
+
+  protected toggleProducts() {
+    this.productsOpen.set(!this.productsOpen());
+  }
+
+  protected toggleServiceProviders() {
+    this.serviceProvidersOpen.set(!this.serviceProvidersOpen());
+  }
+
   protected selectBusiness(id: string) {
     if (this.selectedBusinessId() === id) return;
     this.selectedBusinessId.set(id);
+    this.servicesOpen.set(false);
+    this.productsOpen.set(false);
+    this.serviceProvidersOpen.set(false);
     const requestId = ++this.bizDetailRequestId;
 
     this.servicesLoading.set(true);
@@ -537,6 +558,17 @@ export class XzWorkbench implements OnInit, OnDestroy {
       .finally(() => {
         if (requestId === this.bizDetailRequestId) this.productsLoading.set(false);
       });
+
+    this.serviceProvidersLoading.set(true);
+    this.jobTypesApi
+      .listServiceProviders(this.agent().category)
+      .then((list) => {
+        if (requestId === this.bizDetailRequestId) this.serviceProviders.set(list);
+      })
+      .catch((err) => console.warn('[workbench] could not load service providers:', err))
+      .finally(() => {
+        if (requestId === this.bizDetailRequestId) this.serviceProvidersLoading.set(false);
+      });
   }
 
   protected backToBusinesses() {
@@ -544,6 +576,7 @@ export class XzWorkbench implements OnInit, OnDestroy {
     this.selectedBusinessId.set(null);
     this.services.set([]);
     this.products.set([]);
+    this.serviceProviders.set([]);
   }
 
   protected selectMode(mode: XzMode) {
