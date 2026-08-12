@@ -1,0 +1,9 @@
+<div class="xz">
+  <main class="wrap">
+    <app-xz-workbench [brandName]="brandName()" [presetCategory]="presetCategory()" [registeredBusiness]="registeredBusiness()" (brandNameChange)="onBrandNameChange($event)" />
+  </main>
+
+  @if (auth.open()) {
+    <app-xz-auth-modal (closed)="auth.close()" (businessCreated)="onBusinessCreated($event)" />
+  }
+</div>
