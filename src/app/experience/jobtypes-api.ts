@@ -47,6 +47,23 @@ export interface ProductData {
   Image?: { fileUrl: string; fileName: string }[][];
 }
 
+export interface BrokerData {
+  'Broker Name'?: string;
+  Name?: string;
+  'First Name'?: string;
+  'Last Name'?: string;
+  'AI Description'?: string;
+  'Short Description'?: string;
+  'Business Category'?: string;
+  'Business Category_ref'?: { label: string };
+}
+
+export interface ServiceProvider {
+  id: string;
+  name: string;
+  detail: string;
+}
+
 interface JobInstancesResponse<T> {
   jobs?: JobInstance<T>[];
 }
@@ -134,7 +151,7 @@ export class JobTypesApi {
     };
   }
 
-  private categoryOf(business: JobInstance<BusinessData>): string | null {
+  private categoryOf(business: JobInstance<BusinessData | BrokerData>): string | null {
     const label = business.data['Business Category_ref']?.label?.trim();
     if (label) return label;
 
@@ -227,6 +244,31 @@ export class JobTypesApi {
   async listProducts(businessId: string): Promise<JobInstance<ProductData>[]> {
     const all = await this.fetchInstances<ProductData>('Products', []);
     return all.filter((p) => p.parentJobInstanceId === businessId);
+  }
+
+  async listServiceProviders(category: string): Promise<ServiceProvider[]> {
+    const all = await this.fetchInstances<BrokerData>('Brokers', []);
+    const wanted = category.trim().toLowerCase();
+    return all
+      .filter((broker) => (this.categoryOf(broker) ?? '').toLowerCase() === wanted)
+      .map((broker) => ({
+        id: broker.id,
+        name: this.brokerName(broker.data),
+        detail: this.brokerDetail(broker.data),
+      }))
+      .filter((provider) => provider.name);
+  }
+
+  private brokerName(data: BrokerData): string {
+    const fullName = [data['First Name'], data['Last Name']]
+      .map((part) => (part ?? '').trim())
+      .filter(Boolean)
+      .join(' ');
+    return (data['Broker Name'] ?? '').trim() || (data.Name ?? '').trim() || fullName;
+  }
+
+  private brokerDetail(data: BrokerData): string {
+    return (data['AI Description'] ?? '').trim() || (data['Short Description'] ?? '').trim();
   }
 
   // Creates a Business and its catalogue in one pass. The Business has to

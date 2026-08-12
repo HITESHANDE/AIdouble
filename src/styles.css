@@ -351,6 +351,11 @@ app-experience{display:block}
   font-size:11.5px;font-weight:600;cursor:default}
 
 .xz-kfor{font-family:var(--fd);font-weight:700;font-size:15px;color:var(--ink);display:block;margin-bottom:12px}
+.xz-ksec{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:none;border:0;padding:0 0 12px}
+.xz-ksec h4{margin-bottom:0}
+.xz-ksec svg{width:13px;height:13px;stroke:var(--ink-3);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  transition:transform .18s}
+.xz-ksec[aria-expanded="true"] svg{transform:rotate(90deg)}
 .xz-kitem{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
 .xz-kitem:last-of-type{border-bottom:none}
 .xz-kii{width:26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent);flex-shrink:0;

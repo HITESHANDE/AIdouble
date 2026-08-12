@@ -128,39 +128,74 @@
           <span class="xz-kfor">{{ selectedBusiness()!.data['Business Name'] }}</span>
 
           <div class="xz-kscroll">
-            <h4 style="margin-top:6px">Services</h4>
-            @if (servicesLoading()) {
-              <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
-            } @else if (!services().length) {
-              <div class="xz-biz-empty sm">No services listed yet.</div>
-            } @else {
-              @for (svc of services(); track svc.id) {
-                <div class="xz-kitem">
-                  <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
-                  <span class="xz-kt"><b>{{ svc.data['Service Name'] }}</b>
-                    @if (svc.data['AI Description']) { <span>{{ svc.data['AI Description'] }}</span> }
-                  </span>
-                </div>
+            <button type="button" class="xz-ksec" style="margin-top:6px"
+                    [attr.aria-expanded]="servicesOpen()" (click)="toggleServices()">
+              <h4>Services</h4>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            @if (servicesOpen()) {
+              @if (servicesLoading()) {
+                <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
+              } @else if (!services().length) {
+                <div class="xz-biz-empty sm">No services listed yet.</div>
+              } @else {
+                @for (svc of services(); track svc.id) {
+                  <div class="xz-kitem">
+                    <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
+                    <span class="xz-kt"><b>{{ svc.data['Service Name'] }}</b>
+                      @if (svc.data['AI Description']) { <span>{{ svc.data['AI Description'] }}</span> }
+                    </span>
+                  </div>
+                }
               }
             }
 
-            <h4 style="margin-top:14px">Products</h4>
-            @if (productsLoading()) {
-              <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
-            } @else if (!products().length) {
-              <div class="xz-biz-empty sm">No products listed yet.</div>
-            } @else {
-              @for (prod of products(); track prod.id) {
-                <div class="xz-kitem">
-                  <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
-                  <span class="xz-kt">
-                    <b>{{ prod.data['Product Name'] }}</b>
-                    <span>
-                      @if (prod.data['Price']) { <span class="xz-prod-price">{{ prod.data['Price'] }}</span> }
-                      @if (prod.data['AI Description']) { {{ prod.data['AI Description'] }} }
+            <button type="button" class="xz-ksec" style="margin-top:14px"
+                    [attr.aria-expanded]="productsOpen()" (click)="toggleProducts()">
+              <h4>Products</h4>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            @if (productsOpen()) {
+              @if (productsLoading()) {
+                <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
+              } @else if (!products().length) {
+                <div class="xz-biz-empty sm">No products listed yet.</div>
+              } @else {
+                @for (prod of products(); track prod.id) {
+                  <div class="xz-kitem">
+                    <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 6.6a5 5 0 0 0-7.1 0L12 8.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg></span>
+                    <span class="xz-kt">
+                      <b>{{ prod.data['Product Name'] }}</b>
+                      <span>
+                        @if (prod.data['Price']) { <span class="xz-prod-price">{{ prod.data['Price'] }}</span> }
+                        @if (prod.data['AI Description']) { {{ prod.data['AI Description'] }} }
+                      </span>
                     </span>
-                  </span>
-                </div>
+                  </div>
+                }
+              }
+            }
+
+            <button type="button" class="xz-ksec" style="margin-top:14px"
+                    [attr.aria-expanded]="serviceProvidersOpen()" (click)="toggleServiceProviders()">
+              <h4>Service Providers</h4>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            @if (serviceProvidersOpen()) {
+              @if (serviceProvidersLoading()) {
+                <div class="xz-biz-empty sm"><span class="xz-biz-spinner" aria-hidden="true"></span>Loading…</div>
+              } @else if (!serviceProviders().length) {
+                <div class="xz-biz-empty sm">No service providers listed yet.</div>
+              } @else {
+                @for (provider of serviceProviders(); track provider.id) {
+                  <div class="xz-kitem">
+                    <span class="xz-kii" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                    <span class="xz-kt">
+                      <b>{{ provider.name }}</b>
+                      @if (provider.detail) { <span>{{ provider.detail }}</span> }
+                    </span>
+                  </div>
+                }
               }
             }
           </div>
@@ -199,7 +234,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6a8 8 0 0 1 8-9h2a8 8 0 0 1 8 8z"/></svg>Chat
           </button>
         </div>
-        <span class="xz-modenote">{{ agent().label }}{{ agent().category !== agent().label ? ' · ' + agent().category : '' }}</span>
+        <span class="xz-modenote">{{ modeNote() ?? agent().label + (agent().category !== agent().label ? ' · ' + agent().category : '') }}</span>
       </div>
 
       @if (mode() === 'voice') {
