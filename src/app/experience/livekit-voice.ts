@@ -13,7 +13,13 @@ import {
 import { LibrechatApi } from './librechat-api';
 import { LIBRECHAT_TENANT_ID } from './librechat-config';
 import { AuthSession } from './auth-session';
-import { LIVEKIT_AGENT_NAME, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL } from './livekit-config';
+import {
+  LIVEKIT_AGENT_NAME,
+  LIVEKIT_API_KEY,
+  LIVEKIT_API_SECRET,
+  LIVEKIT_NOISE_FILTER,
+  LIVEKIT_URL,
+} from './livekit-config';
 
 export type VoiceState = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'error';
 
@@ -51,6 +57,7 @@ interface AgentDataMessage {
 const LOG_PREFIX = '[voice]';
 const INPUT_LEVEL_INTERVAL_MS = 50;
 const INPUT_LEVEL_GAIN = 6;
+const INPUT_LEVEL_LOG_MS = 2000;
 
 @Injectable({ providedIn: 'root' })
 export class LivekitVoice {
@@ -64,6 +71,8 @@ export class LivekitVoice {
   private levelContext: AudioContext | null = null;
   private levelFrame: number | null = null;
   private levelEmittedAt = 0;
+  private levelPeak = 0;
+  private levelLoggedAt = 0;
 
   get isActive(): boolean {
     return this.room != null;
@@ -199,6 +208,10 @@ export class LivekitVoice {
       this.log('participant joined', { identity: participant.identity });
     });
 
+    room.on(RoomEvent.LocalTrackSubscribed, (publication) => {
+      this.log('the agent subscribed to our track', { kind: publication.kind, sid: publication.trackSid });
+    });
+
     room.on(RoomEvent.ParticipantDisconnected, (participant) => {
       this.log('participant left', { identity: participant.identity });
       if (!this.stopping) {
@@ -255,6 +268,10 @@ export class LivekitVoice {
   private async applyNoiseFilter(publication: LocalTrackPublication | undefined): Promise<void> {
     const track = publication?.track;
     if (!track || !(track instanceof LocalAudioTrack)) return;
+    if (!LIVEKIT_NOISE_FILTER) {
+      this.log('Krisp noise filter disabled in livekit-config.ts — using the raw mic');
+      return;
+    }
     try {
       const { isKrispNoiseFilterSupported, KrispNoiseFilter } = await import('@livekit/krisp-noise-filter');
       if (!isKrispNoiseFilterSupported()) {
@@ -297,9 +314,20 @@ export class LivekitVoice {
         for (const sample of samples) sum += sample * sample;
         const rms = Math.sqrt(sum / samples.length);
         this.options?.onInputLevel?.(Math.min(1, rms * INPUT_LEVEL_GAIN));
+
+        if (rms > this.levelPeak) this.levelPeak = rms;
+        if (now - this.levelLoggedAt >= INPUT_LEVEL_LOG_MS) {
+          this.levelLoggedAt = now;
+          this.log('mic level over the last 2s', {
+            peak: Number(this.levelPeak.toFixed(4)),
+            processed: track.getProcessor() != null,
+          });
+          this.levelPeak = 0;
+        }
       };
+      this.levelLoggedAt = performance.now();
       this.levelFrame = requestAnimationFrame(tick);
-      this.log('input level meter running');
+      this.log('input level meter running', { processed: track.getProcessor() != null });
     } catch (err) {
       this.logError('failed to start the input level meter', err);
     }
@@ -315,6 +343,8 @@ export class LivekitVoice {
       this.levelContext = null;
     }
     this.levelEmittedAt = 0;
+    this.levelPeak = 0;
+    this.levelLoggedAt = 0;
   }
 
   private attachAgentAudio(track: RemoteAudioTrack): void {

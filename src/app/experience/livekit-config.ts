@@ -11,6 +11,10 @@
 // instead of the deployed one. Empty means normal automatic dispatch.
 export const LIVEKIT_AGENT_NAME = '';
 
-export const LIVEKIT_URL = 'wss://gosure-aidouble-yhzvoi2l.livekit.cloud';
-export const LIVEKIT_API_KEY = 'APIgxWYZPadKqqk';
-export const LIVEKIT_API_SECRET = 'mKslTmQG4f6cJ296vGAP2yFZUjerVRSK6TMeRtJ2lE0B';
+// Krisp's background-voice cancellation is off until it is cleared of
+// swallowing the caller's own voice. Set to true to put it back.
+export const LIVEKIT_NOISE_FILTER = false;
+
+export const LIVEKIT_URL = 'wss://ai-double-3daj2l7p.livekit.cloud';
+export const LIVEKIT_API_KEY = 'APIiACLXSkzryFa';
+export const LIVEKIT_API_SECRET = 'erfKVveSqxzaCJRV2Xb34qJqtj1O3jyouuq0UHXASTgB';
