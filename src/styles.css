@@ -8,7 +8,7 @@
   --max:1280px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:64px}
 body{background:var(--paper);color:var(--ink-2);font-family:var(--fb);font-size:16px;line-height:1.6;
   -webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
@@ -42,7 +42,7 @@ app-experience{display:block}
     radial-gradient(680px 480px at 8% -6%,rgba(124,92,255,.18),transparent 60%),
     radial-gradient(560px 420px at 100% 4%,rgba(0,224,138,.16),transparent 62%),
     radial-gradient(520px 420px at 60% 100%,rgba(255,107,53,.12),transparent 60%)}
-.xz main,.xz .xz-chrome,.xz .xz-footer{position:relative;z-index:2}
+.xz main,.xz .xz-footer{position:relative;z-index:2}
 .xz h1,.xz h2,.xz h3,.xz h4{color:var(--ink);font-weight:400;font-family:var(--fd)}
 .xz :focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
 
@@ -68,8 +68,12 @@ app-experience{display:block}
   text-transform:uppercase;box-shadow:var(--sh-sm);transform:rotate(-1.4deg);margin-bottom:16px}
 
 /* ---------- chrome (top nav) ---------- */
+/* The host element must be display:contents. As an inline box it gives the
+   sticky header no usable containing block; as a block it is only 64px tall,
+   so the header would unstick after one header's worth of scroll. */
+app-xz-chrome{display:contents}
 .xz-chrome{background:var(--chrome);color:var(--chrome-tx);position:sticky;top:0;z-index:60;border-bottom:2px solid var(--hard)}
-.xz .xz-chrome{z-index:60}
+.xz .xz-chrome{position:sticky;top:0;z-index:60}
 .xz-chrome-in{display:flex;align-items:center;gap:22px;height:62px}
 .xz-logo{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-weight:700;font-size:19px;color:var(--paper);flex-shrink:0}
 .xz-logo em{font-style:normal;color:var(--lime)}
